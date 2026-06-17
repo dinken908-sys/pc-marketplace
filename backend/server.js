@@ -1407,11 +1407,12 @@ app.delete('/api/user/avatar', async (req, res) => {
     }
 });
 function startServer(port) {
-    app.listen(port, () => {
+    app.listen(port, '0.0.0.0', () => {
         console.log(`\n===================================`);
-        console.log(`Сервер успешно запущен!`);
+        console.log(`✅ Сервер успешно запущен!`);
         console.log(`===================================\n`);
-        console.log(`Локальный доступ: http://localhost:${port}`);
+        console.log(`📍 Локальный доступ: http://localhost:${port}`);
+        console.log(`🌐 Доступ из сети: на порту ${port}`);
     }).on('error', (err) => {
         if (err.code === 'EADDRINUSE') {
             console.log(`⚠️ Порт ${port} занят, пробую порт ${port + 1}...`);
