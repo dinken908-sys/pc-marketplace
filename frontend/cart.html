@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина - PC Marketplace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+    <div class="header-content">
+        <div class="header-left">
+            <div class="burger-menu" id="burgerMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <h1>PC Marketplace</h1>
+        </div>
+        <div class="header-right"></div>
+    </div>
+    
+    <nav class="desktop-nav">
+        <a href="index.html" class="nav-btn">🛒 Магазин</a>
+        <a href="builder.html" class="nav-btn">🔧 Сборка ПК</a>
+        <a href="community.html" class="nav-btn">👥 Сборки пользователей</a>
+        <a href="cart.html" class="nav-btn active">🛒 Корзина</a>
+        <a href="admin.html" class="nav-btn" id="adminNavBtn" style="display: none;">👑 Админ панель</a>
+        <span class="user-nav">
+            <a href="profile.html" class="nav-btn" id="profileBtn" style="display: none;">👤 Профиль</a>
+            <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;">🚪 Выйти</button>
+            <a href="auth.html" class="nav-btn" id="authBtn">🔐 Вход</a>
+        </span>
+    </nav>
+</header>
+
+<div class="mobile-nav" id="mobileNav">
+    <a href="index.html">🛒 Магазин</a>
+    <a href="builder.html">🔧 Сборка ПК</a>
+    <a href="community.html">👥 Сборки пользователей</a>
+    <a href="cart.html" class="active">🛒 Корзина</a>
+    <a href="admin.html" id="mobileAdminNav" style="display: none;">👑 Админ панель</a>
+    <a href="profile.html" id="mobileProfileBtn" style="display: none;">👤 Профиль</a>
+    <button id="mobileLogoutBtn" style="display: none;" onclick="logoutFromMobile()">🚪 Выйти</button>
+    <a href="auth.html" id="mobileAuthBtn">🔐 Вход</a>
+</div>
+<div class="mobile-overlay" id="mobileOverlay"></div>
+    
+    <main>
+        <div class="cart-container" id="cartContent">
+            <div class="loading">⏳ Загрузка корзины...</div>
+        </div>
+    </main>
+    
+    <script src="script.js"></script>
+    <script>
+        let cartItems = [];
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadComponents();
+            await updateAuthUI();
+            await updateHeaderAvatar();
+            
+            if (!currentUser) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            await loadCart();
+            initMobileMenu();
+        });
+        function initMobileMenu() {
+            const burger = document.getElementById('burgerMenu');
+            const mobileNav = document.getElementById('mobileNav');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            if (!burger) return;
+            
+            function toggleMenu() {
+                burger.classList.toggle('active');
+                mobileNav.classList.toggle('active');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+            }
+            
+            burger.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+            
+            mobileNav.querySelectorAll('a, button').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (mobileNav.classList.contains('active')) toggleMenu();
+                });
+            });
+        }
+        
+        function logoutFromMobile() {
+            if (confirm('Выйти из аккаунта?')) {
+                localStorage.removeItem('currentUser');
+                window.location.reload();
+            }
+        }
+        
+        async function updateAuthUI() {
+            const userStr = localStorage.getItem('currentUser');
+            const authBtn = document.getElementById('authBtn');
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const adminNavBtn = document.getElementById('adminNavBtn');
+            
+            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+            const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+            const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+            const mobileAdminNav = document.getElementById('mobileAdminNav');
+            
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                if (authBtn) authBtn.style.display = 'none';
+                if (profileBtn) profileBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.textContent = `👤 ${currentUser.username}`;
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'none';
+                if (mobileProfileBtn) {
+                    mobileProfileBtn.style.display = 'block';
+                    mobileProfileBtn.textContent = `👤 ${currentUser.username}`;
+                }
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
+                
+                const isAdmin = await isAdminUser(currentUser.id);
+                if (adminNavBtn) adminNavBtn.style.display = isAdmin ? 'inline-block' : 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = isAdmin ? 'block' : 'none';
+            } else {
+                if (authBtn) authBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (adminNavBtn) adminNavBtn.style.display = 'none';
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'block';
+                if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = 'none';
+            }
+        }
+        
+        async function loadCart() {
+            try {
+                const response = await fetch('/api/cart', {
+                    headers: { 'user-id': currentUser.id }
+                });
+                cartItems = await response.json();
+                displayCart();
+            } catch (error) {
+                console.error('Error loading cart:', error);
+            }
+        }
+        
+        function displayCart() {
+        const container = document.getElementById('cartContent');
+        
+        if (!cartItems || cartItems.length === 0) {
+            container.innerHTML = `
+                <div class="empty-cart">
+                    <h2>🛒 Корзина пуста</h2>
+                    <p>Добавьте товары из <a href="index.html">магазина</a> или <a href="builder.html">сборок</a></p>
+                </div>
+            `;
+            return;
+        }
+        
+        const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        container.innerHTML = `
+            <h2>🛒 Корзина (${cartItems.length} товаров)</h2>
+            <div class="cart-grid">
+                <div class="cart-items">
+                    ${cartItems.map(item => {
+                        let itemImage = item.item_data?.image || 'https://placehold.co/80x80/667eea/white?text=PC';
+                        
+                        return `
+                            <div class="cart-item">
+                                <img src="${itemImage}" 
+                                    class="cart-item-image"
+                                    onerror="this.src='https://placehold.co/80x80/667eea/white?text=PC'">
+                                <div class="cart-item-info">
+                                    <div class="cart-item-title">${escapeHtml(item.item_data?.name || 'Товар')}</div>
+                                    <div class="cart-item-type">
+                                        ${item.item_type === 'component' ? 'Комплектующее' : 'Готовая сборка'}
+                                        ${item.item_type === 'build' && item.item_data?.case ? ' 📦' : ''}
+                                    </div>
+                                    ${item.item_type === 'build' && item.item_data?.case ? 
+                                        `<div class="cart-item-case">Корпус: ${escapeHtml(item.item_data.case.name)}</div>` : ''}
+                                </div>
+                                <div class="cart-item-price">${(item.price * item.quantity).toLocaleString('ru-RU')} ₽</div>
+                                <div class="cart-item-quantity">
+                                    <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                                    <span>${item.quantity}</span>
+                                    <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                                </div>
+                                <button class="remove-item" onclick="removeFromCart(${item.id})">🗑️</button>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="cart-summary">
+                    <h3>Итого</h3>
+                    <div class="summary-row">
+                        <span>Товары (${cartItems.length})</span>
+                        <span>${total.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                    <div class="summary-row summary-total">
+                        <span>К оплате</span>
+                        <span>${total.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                    <button class="checkout-btn" onclick="goToCheckout()">Оформить заказ</button>
+                </div>
+            </div>
+        `;
+    }
+        
+        async function updateQuantity(cartId, newQuantity) {
+            if (newQuantity < 1) {
+                await removeFromCart(cartId);
+                return;
+            }
+            
+            const response = await fetch(`/api/cart/${cartId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'user-id': currentUser.id },
+                body: JSON.stringify({ quantity: newQuantity })
+            });
+            
+            if (response.ok) {
+                await loadCart();
+            }
+        }
+        
+        async function removeFromCart(cartId) {
+            const response = await fetch(`/api/cart/${cartId}`, {
+                method: 'DELETE',
+                headers: { 'user-id': currentUser.id }
+            });
+            
+            if (response.ok) {
+                await loadCart();
+            }
+        }
+        
+        function goToCheckout() {
+            localStorage.setItem('checkoutItems', JSON.stringify(cartItems));
+            window.location.href = 'checkout.html';
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

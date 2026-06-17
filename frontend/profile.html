@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль - PC Marketplace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <div class="header-left">
+            <div class="burger-menu" id="burgerMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <h1>PC Marketplace</h1>
+        </div>
+        <div class="header-right"></div>
+    </div>
+    
+    <nav class="desktop-nav">
+        <a href="index.html" class="nav-btn">🛒 Магазин</a>
+        <a href="builder.html" class="nav-btn">🔧 Сборка ПК</a>
+        <a href="community.html" class="nav-btn">👥 Сборки пользователей</a>
+        <a href="cart.html" class="nav-btn">🛒 Корзина</a>
+        <a href="admin.html" class="nav-btn" id="adminNavBtn" style="display: none;">👑 Админ панель</a>
+        <span class="user-nav">
+            <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;">🚪 Выйти</button>
+            <a href="auth.html" class="nav-btn" id="authBtn">🔐 Вход</a>
+        </span>
+    </nav>
+    
+    <!-- Секция аватара в шапке (только здесь, в displayProfile() его нет) -->
+
+</header>
+
+<!-- Мобильная навигация -->
+<div class="mobile-nav" id="mobileNav">
+    <a href="index.html">🛒 Магазин</a>
+    <a href="builder.html">🔧 Сборка ПК</a>
+    <a href="community.html">👥 Сборки пользователей</a>
+    <a href="cart.html">🛒 Корзина</a>
+    <a href="admin.html" id="mobileAdminNav" style="display: none;">👑 Админ панель</a>
+    <button id="mobileLogoutBtn" style="display: none;" onclick="logoutFromMobile()">🚪 Выйти</button>
+    <a href="auth.html" id="mobileAuthBtn">🔐 Вход</a>
+</div>
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+<main>
+        <div class="profile-avatar-section">
+        <div class="avatar-container">
+            <img id="profileAvatar" class="profile-avatar-img" src="" alt="Аватар">
+            <div class="avatar-overlay" onclick="document.getElementById('avatarInput').click()">
+                <span>📷</span>
+                <span>Сменить фото</span>
+            </div>
+        </div>
+        <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="uploadAvatar(this)">
+        <button id="removeAvatarBtn" class="remove-avatar-btn" style="display: none;" onclick="removeAvatar()">🗑️ Удалить фото</button>
+    </div>
+    <div class="profile-container" id="profileContent">
+        <div class="loading">⏳ Загрузка профиля...</div>
+    </div>
+</main>
+
+<script src="script.js"></script>
+<script>
+    let currentTab = 'builds';
+    let userBuilds = [];
+    let userData = null;
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadComponents();
+        await updateAuthUI();
+        
+        if (!currentUser) {
+            window.location.href = 'auth.html';
+            return;
+        }
+        
+        await loadProfile();
+        await loadAvatar();
+        initMobileMenu();
+    });
+    
+    function initMobileMenu() {
+        const burger = document.getElementById('burgerMenu');
+        const mobileNav = document.getElementById('mobileNav');
+        const overlay = document.getElementById('mobileOverlay');
+        
+        if (!burger) return;
+        
+        function toggleMenu() {
+            burger.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        }
+        
+        burger.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+        
+        mobileNav.querySelectorAll('a, button').forEach(link => {
+            link.addEventListener('click', () => {
+                if (mobileNav.classList.contains('active')) toggleMenu();
+            });
+        });
+    }
+    
+    function logoutFromMobile() {
+        if (confirm('Выйти из аккаунта?')) {
+            localStorage.removeItem('currentUser');
+            window.location.reload();
+        }
+    }
+    
+    async function updateAuthUI() {
+        const userStr = localStorage.getItem('currentUser');
+        const authBtn = document.getElementById('authBtn');
+        const profileBtn = document.getElementById('profileBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const adminNavBtn = document.getElementById('adminNavBtn');
+        
+        const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+        const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+        const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+        const mobileAdminNav = document.getElementById('mobileAdminNav');
+        
+        if (userStr) {
+            currentUser = JSON.parse(userStr);
+            if (authBtn) authBtn.style.display = 'none';
+            if (profileBtn) profileBtn.style.display = 'inline-block';
+            if (logoutBtn) logoutBtn.style.display = 'inline-block';
+            if (profileBtn) profileBtn.textContent = `👤 ${currentUser.username}`;
+            
+            if (mobileAuthBtn) mobileAuthBtn.style.display = 'none';
+            if (mobileProfileBtn) {
+                mobileProfileBtn.style.display = 'block';
+                mobileProfileBtn.textContent = `👤 ${currentUser.username}`;
+            }
+            if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
+            
+            const isAdmin = await isAdminUser(currentUser.id);
+            if (adminNavBtn) adminNavBtn.style.display = isAdmin ? 'inline-block' : 'none';
+            if (mobileAdminNav) mobileAdminNav.style.display = isAdmin ? 'block' : 'none';
+        } else {
+            if (authBtn) authBtn.style.display = 'inline-block';
+            if (profileBtn) profileBtn.style.display = 'none';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            if (adminNavBtn) adminNavBtn.style.display = 'none';
+            
+            if (mobileAuthBtn) mobileAuthBtn.style.display = 'block';
+            if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+            if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
+            if (mobileAdminNav) mobileAdminNav.style.display = 'none';
+        }
+    }
+    
+    async function loadProfile() {
+        try {
+            console.log('Loading profile for user:', currentUser.id);
+            
+            const response = await fetch(`/api/user/profile/${currentUser.id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            userData = await response.json();
+            console.log('User data:', userData);
+            
+            await loadUserBuilds();
+            
+            displayProfile();
+        } catch (error) {
+            console.error('Error loading profile:', error);
+            document.getElementById('profileContent').innerHTML = `<div class="error-message">❌ Ошибка загрузки профиля: ${error.message}</div>`;
+        }
+    }
+    
+    async function loadUserBuilds() {
+        try {
+            const buildsResponse = await fetch(`/api/user/${currentUser.id}/builds`);
+            if (!buildsResponse.ok) {
+                throw new Error(`HTTP error! status: ${buildsResponse.status}`);
+            }
+            userBuilds = await buildsResponse.json();
+            console.log('User builds:', userBuilds);
+            console.log('Builds count:', userBuilds.length);
+            console.log('Total likes:', userBuilds.reduce((sum, b) => sum + (b.likes || 0), 0));
+        } catch (error) {
+            console.error('Error loading builds:', error);
+            userBuilds = [];
+        }
+    }
+    
+    function displayProfile() {
+        const container = document.getElementById('profileContent');
+        const profile = userData?.profile || {};
+        
+        const totalLikes = userBuilds.reduce((sum, b) => sum + (b.likes || 0), 0);
+        
+        container.innerHTML = `
+            <div class="profile-header">
+                <h2>${escapeHtml(userData.username)}</h2>
+                <p>${escapeHtml(userData.email)}</p>
+                <p>${userData.is_admin ? '👑 Администратор' : '👤 Пользователь'}</p>
+                <small>Зарегистрирован: ${new Date(userData.created_at).toLocaleDateString('ru-RU')}</small>
+                <div>
+                    <button onclick="loadProfile()" class="refresh-btn">🔄 Обновить</button>
+                </div>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-card">
+                    <div class="stat-number">${userBuilds.length}</div>
+                    <div>Сборок создано</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalLikes}</div>
+                    <div>Всего лайков</div>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab ${currentTab === 'builds' ? 'active' : ''}" onclick="showTab('builds')">📦 Мои сборки</button>
+                <button class="tab ${currentTab === 'settings' ? 'active' : ''}" onclick="showTab('settings')">⚙️ Настройки</button>
+                <button class="tab ${currentTab === 'danger' ? 'active' : ''}" onclick="showTab('danger')">⚠️ Безопасность</button>
+            </div>
+            
+            <div id="tabContent"></div>
+        `;
+        
+        showTab(currentTab);
+    }
+    
+    function showTab(tab) {
+        currentTab = tab;
+        
+        document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+        const btns = document.querySelectorAll('.tab');
+        if (tab === 'builds' && btns[0]) btns[0].classList.add('active');
+        else if (tab === 'settings' && btns[1]) btns[1].classList.add('active');
+        else if (tab === 'danger' && btns[2]) btns[2].classList.add('active');
+        
+        const container = document.getElementById('tabContent');
+        const profile = userData?.profile || {};
+        
+        if (tab === 'builds') {
+            if (!userBuilds || userBuilds.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>😕 У вас пока нет сборок</p>
+                        <p>Перейдите в раздел <a href="builder.html">"Сборка ПК"</a> чтобы создать первую сборку!</p>
+                        <button onclick="loadUserBuilds()" class="refresh-btn" style="margin-top: 1rem;">🔄 Обновить</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = userBuilds.map(build => `
+                    <div class="build-card-small">
+                        <div class="build-header">
+                            <h3>${escapeHtml(build.name)}</h3>
+                            <span class="build-price">${(build.total_price || 0).toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                        <div class="build-components">
+                            <ul>
+                                ${build.components?.cpu ? `<li>🖥️ CPU: ${escapeHtml(build.components.cpu.name)}</li>` : ''}
+                                ${build.components?.gpu ? `<li>🎮 GPU: ${escapeHtml(build.components.gpu.name)}</li>` : ''}
+                                ${build.components?.ram ? `<li>💾 RAM: ${escapeHtml(build.components.ram.name)}</li>` : ''}
+                                ${build.components?.motherboard ? `<li>🔌 Материнская плата: ${escapeHtml(build.components.motherboard.name)}</li>` : ''}
+                            </ul>
+                        </div>
+                        <div class="build-meta">
+                            <span>❤️ ${build.likes || 0} лайков</span>
+                            <span>📅 ${new Date(build.created_at).toLocaleDateString('ru-RU')}</span>
+                        </div>
+                        <button onclick="deleteBuild(${build.id})" class="delete-btn" style="margin-top: 0.5rem;">🗑️ Удалить сборку</button>
+                        <button onclick="addBuildToCart(${build.id})" class="cart-btn">🛒 В корзину</button>
+                    </div>
+                `).join('');
+            }
+        } else if (tab === 'settings') {
+            container.innerHTML = `
+                <form class="settings-form" onsubmit="updateProfile(event)">
+                    <h3>📝 Личная информация</h3>
+                    <div class="form-group">
+                        <label>👤 Имя пользователя</label>
+                        <input type="text" id="username" value="${escapeHtml(userData.username)}">
+                    </div>
+                    <div class="form-group">
+                        <label>📛 Полное имя</label>
+                        <input type="text" id="fullName" value="${escapeHtml(profile.full_name || '')}">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🎂 Дата рождения</label>
+                            <input type="date" id="birthDate" value="${profile.birth_date || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label>⚥ Пол</label>
+                            <select id="gender">
+                                <option value="">Не указан</option>
+                                <option value="male" ${profile.gender === 'male' ? 'selected' : ''}>Мужской</option>
+                                <option value="female" ${profile.gender === 'female' ? 'selected' : ''}>Женский</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>📞 Телефон</label>
+                        <input type="tel" id="phone" value="${escapeHtml(profile.phone || '')}" placeholder="+7 (999) 123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label>🏠 Адрес</label>
+                        <input type="text" id="address" value="${escapeHtml(profile.address || '')}" placeholder="Город, улица, дом">
+                    </div>
+                    <button type="submit" class="save-btn">💾 Сохранить изменения</button>
+                </form>
+                
+                <div class="password-section">
+                    <h3>🔒 Смена пароля</h3>
+                    <div class="form-group">
+                        <label>Текущий пароль</label>
+                        <input type="password" id="currentPassword" placeholder="Введите текущий пароль">
+                    </div>
+                    <div class="form-group">
+                        <label>Новый пароль</label>
+                        <input type="password" id="newPassword" placeholder="Новый пароль">
+                    </div>
+                    <div class="form-group">
+                        <label>Подтверждение пароля</label>
+                        <input type="password" id="confirmPassword" placeholder="Подтвердите новый пароль">
+                    </div>
+                    <button type="button" onclick="changePassword()" class="save-btn">🔐 Сменить пароль</button>
+                </div>
+            `;
+        } else if (tab === 'danger') {
+            container.innerHTML = `
+                <div class="settings-form">
+                    <h3 style="color: #e74c3c;">⚠️ Удаление аккаунта</h3>
+                    <p>Это действие нельзя отменить. Все ваши данные будут удалены.</p>
+                    <button onclick="deleteAccount()" class="delete-btn">🗑️ Удалить аккаунт</button>
+                </div>
+            `;
+        }
+    }
+    
+    async function addBuildToCart(buildId) {
+        const build = userBuilds.find(b => b.id === buildId);
+        if (!build) return;
+        
+        const response = await fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'user-id': currentUser.id },
+            body: JSON.stringify({
+                item_type: 'build',
+                item_id: build.id,
+                item_data: {
+                    id: build.id,
+                    name: build.name,
+                    description: `Моя сборка`,
+                    category: build.category,
+                    components: build.components,
+                    total_price: build.total_price,
+                    image: build.components?.gpu?.image || build.components?.cpu?.image || 'https://placehold.co/80x80/667eea/white?text=PC'
+                },
+                price: build.total_price,
+                quantity: 1
+            })
+        });
+        
+        if (response.ok) {
+            alert('✅ Сборка добавлена в корзину!');
+        }
+    }
+    
+    async function updateProfile(event) {
+        event.preventDefault();
+        
+        const newUsername = document.getElementById('username').value;
+        if (newUsername !== userData.username) {
+            const response = await fetch('/api/user/username', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'user-id': currentUser.id },
+                body: JSON.stringify({ newUsername })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                currentUser.username = newUsername;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                alert('✅ Имя пользователя обновлено');
+            } else {
+                alert('❌ Ошибка при смене имени');
+                return;
+            }
+        }
+        
+        const data = {
+            full_name: document.getElementById('fullName').value,
+            birth_date: document.getElementById('birthDate').value || null,
+            gender: document.getElementById('gender').value,
+            phone: document.getElementById('phone').value,
+            address: document.getElementById('address').value
+        };
+        
+        const response = await fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'user-id': currentUser.id },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            alert('✅ Профиль обновлен');
+            await loadProfile();
+        } else {
+            const error = await response.json();
+            alert('❌ Ошибка: ' + (error.error || 'Неизвестная ошибка'));
+        }
+    }
+    
+    async function deleteBuild(buildId) {
+        if (!confirm('Удалить эту сборку?')) return;
+        
+        const response = await fetch(`/api/builds/${buildId}`, {
+            method: 'DELETE',
+            headers: { 'user-id': currentUser.id }
+        });
+        
+        if (response.ok) {
+            alert('✅ Сборка удалена');
+            await loadUserBuilds();
+            displayProfile();
+        } else {
+            alert('❌ Ошибка при удалении');
+        }
+    }
+    
+    async function deleteAccount() {
+        if (!confirm('⚠️ Вы уверены? Это действие необратимо!')) return;
+        if (!confirm('Еще раз подтвердите удаление аккаунта.')) return;
+        
+        const response = await fetch('/api/user/account', {
+            method: 'DELETE',
+            headers: { 'user-id': currentUser.id }
+        });
+        
+        if (response.ok) {
+            alert('✅ Аккаунт удален. До свидания!');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        } else {
+            const error = await response.json();
+            alert('❌ Ошибка: ' + (error.error || 'Неизвестная ошибка'));
+        }
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    async function changePassword() {
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            alert('Заполните все поля');
+            return;
+        }
+        
+        if (newPassword !== confirmPassword) {
+            alert('Новый пароль и подтверждение не совпадают');
+            return;
+        }
+        
+        if (newPassword.length < 4) {
+            alert('Пароль должен быть не менее 4 символов');
+            return;
+        }
+        
+        const response = await fetch('/api/user/password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'user-id': currentUser.id },
+            body: JSON.stringify({ oldPassword: currentPassword, newPassword: newPassword })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert('✅ Пароль успешно изменен');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        } else {
+            alert('❌ ' + (result.error || 'Ошибка при смене пароля'));
+        }
+    }
+    
+    async function loadAvatar() {
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) return;
+        
+        const user = JSON.parse(userStr);
+        const response = await fetch(`/api/user/profile/${user.id}`);
+        const data = await response.json();
+        
+        const avatarImg = document.getElementById('profileAvatar');
+        const removeBtn = document.getElementById('removeAvatarBtn');
+        
+        if (data.profile?.avatar_url) {
+            avatarImg.src = data.profile.avatar_url;
+            removeBtn.style.display = 'inline-block';
+        } else {
+            const initials = user.username.substring(0, 2).toUpperCase();
+            avatarImg.src = `https://placehold.co/200x200/667eea/white?text=${initials}`;
+            removeBtn.style.display = 'none';
+        }
+    }
+    
+    async function uploadAvatar(input) {
+        if (!input.files || input.files.length === 0) return;
+        
+        const file = input.files[0];
+        
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Файл слишком большой. Максимум 2MB');
+            return;
+        }
+        
+        if (!file.type.startsWith('image/')) {
+            alert('Пожалуйста, выберите изображение');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        const userStr = localStorage.getItem('currentUser');
+        const user = JSON.parse(userStr);
+        
+        const avatarImg = document.getElementById('profileAvatar');
+        avatarImg.style.opacity = '0.5';
+        
+        try {
+            const response = await fetch('/api/user/avatar', {
+                method: 'POST',
+                headers: { 'user-id': user.id },
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                avatarImg.src = result.avatar_url + '?t=' + Date.now();
+                document.getElementById('removeAvatarBtn').style.display = 'inline-block';
+                if (typeof updateHeaderAvatar === 'function') {
+                    await updateHeaderAvatar();
+                }
+                alert('✅ Аватар успешно обновлён');
+            } else {
+                alert('❌ Ошибка: ' + (result.error || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('❌ Ошибка загрузки аватара');
+        } finally {
+            avatarImg.style.opacity = '1';
+            input.value = '';
+        }
+    }
+    
+    async function removeAvatar() {
+        if (!confirm('Удалить фото профиля?')) return;
+        
+        const userStr = localStorage.getItem('currentUser');
+        const user = JSON.parse(userStr);
+        
+        try {
+            const response = await fetch('/api/user/avatar', {
+                method: 'DELETE',
+                headers: { 'user-id': user.id }
+            });
+            
+            if (response.ok) {
+                const initials = user.username.substring(0, 2).toUpperCase();
+                const avatarImg = document.getElementById('profileAvatar');
+                avatarImg.src = `https://placehold.co/200x200/667eea/white?text=${initials}`;
+                document.getElementById('removeAvatarBtn').style.display = 'none';
+                if (typeof updateHeaderAvatar === 'function') {
+                    await updateHeaderAvatar();
+                }
+                alert('✅ Фото профиля удалено');
+            } else {
+                alert('❌ Ошибка удаления');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Ошибка сервера');
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление категориями - PC Marketplace</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <div class="burger-menu" id="burgerMenu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <h1>PC Marketplace</h1>
+            </div>
+            <div class="header-right"></div>
+        </div>
+        
+        <nav class="desktop-nav">
+            <a href="index.html" class="nav-btn">🛒 Магазин</a>
+            <a href="builder.html" class="nav-btn">🔧 Сборка ПК</a>
+            <a href="community.html" class="nav-btn">👥 Сборки пользователей</a>
+            <a href="cart.html" class="nav-btn">🛒 Корзина</a>
+            <a href="admin.html" class="nav-btn">👑 Админ панель</a>
+            <a href="categories-admin.html" class="nav-btn active">📁 Категории</a>
+            <span class="user-nav">
+                <a href="profile.html" class="nav-btn" id="profileBtn" style="display: none;">👤 Профиль</a>
+                <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;" onclick="logoutNow()">🚪 Выйти</button>
+                <a href="auth.html" class="nav-btn" id="authBtn">🔐 Вход</a>
+            </span>
+        </nav>
+    </header>
+    
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html">🛒 Магазин</a>
+        <a href="builder.html">🔧 Сборка ПК</a>
+        <a href="community.html">👥 Сборки пользователей</a>
+        <a href="cart.html">🛒 Корзина</a>
+        <a href="admin.html">👑 Админ панель</a>
+        <a href="categories-admin.html" class="active">📁 Категории</a>
+        <a href="profile.html" id="mobileProfileBtn" style="display: none;">👤 Профиль</a>
+        <button id="mobileLogoutBtn" style="display: none;" onclick="logoutNow()">🚪 Выйти</button>
+        <a href="auth.html" id="mobileAuthBtn">🔐 Вход</a>
+    </div>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    
+    <main>
+        <h2>📁 Управление категориями и шаблонами сборок</h2>
+        
+        <div class="admin-actions" style="margin-bottom: 1rem;">
+            <button onclick="showAddCategoryModal()" class="add-btn">➕ Добавить категорию</button>
+            <button onclick="showAddTemplateModal()" class="add-btn" id="addTemplateBtn" style="display: none;">➕ Добавить шаблон</button>
+            <button onclick="loadCategories()" class="refresh-btn">🔄 Обновить</button>
+        </div>
+        
+        <div class="categories-container">
+            <div class="categories-sidebar">
+                <h3>📂 Категории</h3>
+                <div id="categoriesList">
+                    <div class="loading">⏳ Загрузка категорий...</div>
+                </div>
+            </div>
+            
+            <div class="templates-sidebar">
+                <h3 id="templatesTitle">📋 Шаблоны сборок</h3>
+                <div id="templatesList">
+                    <div class="empty-state">Выберите категорию слева</div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div id="categoryModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">➕ Добавить категорию</h3>
+                <button class="modal-close" onclick="closeModal('categoryModal')">✕</button>
+            </div>
+            <div style="padding: 1rem;">
+                <form id="categoryForm" onsubmit="saveCategory(event)">
+                    <input type="hidden" id="categoryId" value="">
+                    <div class="form-group">
+                        <label>Название *</label>
+                        <input type="text" id="catName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Иконка (эмодзи)</label>
+                        <input type="text" id="catIcon" placeholder="🎯" value="📁">
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea id="catDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Порядок сортировки</label>
+                        <input type="number" id="catSortOrder" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="catIsActive" checked>
+                            <span>Активна</span>
+                        </label>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="save-btn">💾 Сохранить</button>
+                        <button type="button" class="cancel-btn" onclick="closeModal('categoryModal')">❌ Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div id="templateModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="templateModalTitle">➕ Добавить шаблон</h3>
+                <button class="modal-close" onclick="closeModal('templateModal')">✕</button>
+            </div>
+            <div style="padding: 1rem;">
+                <form id="templateForm" onsubmit="saveTemplate(event)">
+                    <input type="hidden" id="templateId" value="">
+                    <input type="hidden" id="templateCategoryId" value="">
+                    <div class="form-group">
+                        <label>Название шаблона *</label>
+                        <input type="text" id="tempName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea id="tempDescription" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Цена (₽)</label>
+                        <input type="number" id="tempPrice" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Минимальный бюджет (₽)</label>
+                        <input type="number" id="tempMinBudget" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Максимальный бюджет (₽)</label>
+                        <input type="number" id="tempMaxBudget" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Компоненты сборки</label>
+                        <div id="componentsContainer" class="components-container"></div>
+                        <button type="button" class="add-comp-btn" onclick="addComponentField()">➕ Добавить компонент</button>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="save-btn">💾 Сохранить шаблон</button>
+                        <button type="button" class="cancel-btn" onclick="closeModal('templateModal')">❌ Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        let categories = [];
+        let templates = [];
+        let selectedCategoryId = null;
+        let componentFields = [];
+        
+        const componentTypes = [
+            { value: 'CPU', label: '🖥️ Процессор' },
+            { value: 'GPU', label: '🎮 Видеокарта' },
+            { value: 'RAM', label: '💾 Оперативная память' },
+            { value: 'Motherboard', label: '🔌 Материнская плата' },
+            { value: 'SSD', label: '💽 Накопитель SSD' },
+            { value: 'PSU', label: '⚡ Блок питания' },
+            { value: 'Cooler', label: '❄️ Охлаждение' },
+            { value: 'Case', label: '📦 Корпус' }
+        ];
+        
+        window.logoutNow = function() {
+            if (confirm('Выйти из аккаунта?')) {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
+        };
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userStr = localStorage.getItem('currentUser');
+            if (!userStr) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            const currentUser = JSON.parse(userStr);
+            
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const authBtn = document.getElementById('authBtn');
+            
+            if (profileBtn) {
+                profileBtn.style.display = 'inline-block';
+                profileBtn.textContent = `👤 ${currentUser.username}`;
+            }
+            if (logoutBtn) logoutBtn.style.display = 'inline-block';
+            if (authBtn) authBtn.style.display = 'none';
+            
+            const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+            const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+            
+            if (mobileProfileBtn) {
+                mobileProfileBtn.style.display = 'block';
+                mobileProfileBtn.textContent = `👤 ${currentUser.username}`;
+            }
+            if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
+            if (mobileAuthBtn) mobileAuthBtn.style.display = 'none';
+            
+            await loadCategories();
+            
+            const burger = document.getElementById('burgerMenu');
+            const mobileNav = document.getElementById('mobileNav');
+            const overlay = document.getElementById('mobileOverlay');
+            if (burger) {
+                burger.addEventListener('click', () => {
+                    burger.classList.toggle('active');
+                    mobileNav.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                });
+                overlay.addEventListener('click', () => {
+                    burger.classList.remove('active');
+                    mobileNav.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+        });
+        
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/build-categories');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                categories = await response.json();
+                displayCategories();
+            } catch (error) {
+                document.getElementById('categoriesList').innerHTML = `<div class="error-message">❌ Ошибка: ${error.message}</div>`;
+            }
+        }
+        
+        function displayCategories() {
+            const container = document.getElementById('categoriesList');
+            if (!categories || categories.length === 0) {
+                container.innerHTML = `<div class="empty-state">😕 Нет категорий.<br><br><button onclick="showAddCategoryModal()" class="add-btn">➕ Создать</button></div>`;
+                return;
+            }
+            container.innerHTML = categories.map(cat => `
+                <div class="category-item ${selectedCategoryId === cat.id ? 'active' : ''}" onclick="selectCategory(${cat.id})">
+                    <div class="category-header">
+                        <span class="category-title">${escapeHtml(cat.name)}</span>
+                        <span class="category-icon">${cat.icon || '📁'}</span>
+                    </div>
+                    <div class="category-desc">${escapeHtml(cat.description) || 'Без описания'}</div>
+                    <div class="category-meta">
+                        <span>ID: ${cat.id}</span>
+                        <span>Порядок: ${cat.sort_order || 0}</span>
+                        <span class="status-badge ${cat.is_active ? 'status-active' : 'status-inactive'}">${cat.is_active ? 'Активна' : 'Неактивна'}</span>
+                    </div>
+                    <div class="template-actions" onclick="event.stopPropagation()">
+                        <button onclick="editCategory(${cat.id})" class="edit-btn">✏️</button>
+                        <button onclick="deleteCategory(${cat.id})" class="delete-btn">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function selectCategory(categoryId) {
+            selectedCategoryId = categoryId;
+            displayCategories();
+            document.getElementById('addTemplateBtn').style.display = 'inline-block';
+            const category = categories.find(c => c.id === categoryId);
+            document.getElementById('templatesTitle').innerHTML = `📋 Шаблоны: ${category?.name || ''}`;
+            await loadTemplates(categoryId);
+        }
+        
+        async function loadTemplates(categoryId) {
+            try {
+                const response = await fetch(`/api/build-templates/${categoryId}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                templates = await response.json();
+                displayTemplates();
+            } catch (error) {
+                document.getElementById('templatesList').innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+            }
+        }
+        
+        function displayTemplates() {
+            const container = document.getElementById('templatesList');
+            if (!templates || templates.length === 0) {
+                container.innerHTML = `<div class="empty-state">😕 Нет шаблонов<br><br><button onclick="showAddTemplateModal()" class="add-btn">➕ Создать</button></div>`;
+                return;
+            }
+            container.innerHTML = templates.map(template => {
+                let comps = '';
+                if (template.components && typeof template.components === 'object') {
+                    comps = Object.entries(template.components).map(([k, v]) => {
+                        const typeLabel = componentTypes.find(t => t.value === k)?.label || k;
+                        return `<span class="component-tag">${typeLabel}: ${v}</span>`;
+                    }).join('');
+                }
+                return `
+                    <div class="template-card">
+                        <div class="template-header">
+                            <span class="template-name">${escapeHtml(template.name)}</span>
+                            <span class="template-price">${(template.total_price || 0).toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                        <div class="template-desc">${escapeHtml(template.description) || 'Без описания'}</div>
+                        <div class="template-components">${comps || '<span class="component-tag">Нет компонентов</span>'}</div>
+                        <div class="template-actions">
+                            <button onclick="editTemplate(${template.id})" class="edit-btn">✏️</button>
+                            <button onclick="deleteTemplate(${template.id})" class="delete-btn">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        
+        function addComponentField(type = '', value = '') {
+            componentFields.push({ type: type, value: value });
+            renderComponentFields();
+        }
+        
+        function removeComponentField(index) {
+            componentFields.splice(index, 1);
+            renderComponentFields();
+        }
+        
+        function updateComponentType(index, type) {
+            componentFields[index].type = type;
+        }
+        
+        function updateComponentValue(index, value) {
+            componentFields[index].value = value;
+        }
+        
+        function renderComponentFields() {
+            const container = document.getElementById('componentsContainer');
+            if (!container) return;
+            
+            if (componentFields.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #999; padding: 1rem;">Нет компонентов. Нажмите "Добавить компонент"</div>';
+                return;
+            }
+            
+            container.innerHTML = componentFields.map((field, index) => `
+                <div class="component-row">
+                    <select onchange="updateComponentType(${index}, this.value)">
+                        <option value="">Выберите тип</option>
+                        ${componentTypes.map(type => `
+                            <option value="${type.value}" ${field.type === type.value ? 'selected' : ''}>${type.label}</option>
+                        `).join('')}
+                    </select>
+                    <input type="text"
+                           value="${escapeHtml(field.value)}"
+                           onchange="updateComponentValue(${index}, this.value)">
+                    <button type="button" class="remove-comp-btn" onclick="removeComponentField(${index})">✕</button>
+                </div>
+            `).join('');
+        }
+        
+        function getComponentsJSON() {
+            const components = {};
+            componentFields.forEach(field => {
+                if (field.type && field.value) {
+                    components[field.type] = field.value;
+                }
+            });
+            return components;
+        }
+        
+        function loadComponentsFromJSON(components) {
+            componentFields = [];
+            if (components && typeof components === 'object') {
+                Object.entries(components).forEach(([type, value]) => {
+                    componentFields.push({ type: type, value: value });
+                });
+            }
+            renderComponentFields();
+        }
+        
+        
+        function showAddCategoryModal() {
+            document.getElementById('categoryModalTitle').textContent = '➕ Добавить категорию';
+            document.getElementById('categoryId').value = '';
+            document.getElementById('catName').value = '';
+            document.getElementById('catIcon').value = '📁';
+            document.getElementById('catDescription').value = '';
+            document.getElementById('catSortOrder').value = categories.length;
+            document.getElementById('catIsActive').checked = true;
+            document.getElementById('categoryModal').style.display = 'flex';
+        }
+        
+        function editCategory(id) {
+            const cat = categories.find(c => c.id === id);
+            if (!cat) return;
+            document.getElementById('categoryModalTitle').textContent = '✏️ Редактировать';
+            document.getElementById('categoryId').value = cat.id;
+            document.getElementById('catName').value = cat.name;
+            document.getElementById('catIcon').value = cat.icon || '📁';
+            document.getElementById('catDescription').value = cat.description || '';
+            document.getElementById('catSortOrder').value = cat.sort_order || 0;
+            document.getElementById('catIsActive').checked = cat.is_active;
+            document.getElementById('categoryModal').style.display = 'flex';
+        }
+        
+        async function saveCategory(event) {
+            event.preventDefault();
+            const id = document.getElementById('categoryId').value;
+            const userStr = localStorage.getItem('currentUser');
+            const user = JSON.parse(userStr);
+            const data = {
+                name: document.getElementById('catName').value,
+                icon: document.getElementById('catIcon').value,
+                description: document.getElementById('catDescription').value,
+                sort_order: parseInt(document.getElementById('catSortOrder').value),
+                is_active: document.getElementById('catIsActive').checked
+            };
+            const url = id ? `/api/admin/build-categories/${id}` : '/api/admin/build-categories';
+            const method = id ? 'PUT' : 'POST';
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json', 'user-id': user.id },
+                body: JSON.stringify(data)
+            });
+            if (response.ok) {
+                alert(id ? 'Обновлено' : 'Создано');
+                closeModal('categoryModal');
+                await loadCategories();
+            } else {
+                alert('Ошибка');
+            }
+        }
+        
+        async function deleteCategory(id) {
+            if (!confirm('Удалить категорию?')) return;
+            const userStr = localStorage.getItem('currentUser');
+            const user = JSON.parse(userStr);
+            const response = await fetch(`/api/admin/build-categories/${id}`, {
+                method: 'DELETE',
+                headers: { 'user-id': user.id }
+            });
+            if (response.ok) {
+                alert('Удалено');
+                if (selectedCategoryId === id) {
+                    selectedCategoryId = null;
+                    document.getElementById('addTemplateBtn').style.display = 'none';
+                    document.getElementById('templatesTitle').innerHTML = '📋 Шаблоны';
+                    document.getElementById('templatesList').innerHTML = '<div class="empty-state">Выберите категорию</div>';
+                }
+                await loadCategories();
+            }
+        }
+        
+        
+        function showAddTemplateModal() {
+            if (!selectedCategoryId) { 
+                alert('Сначала выберите категорию'); 
+                return; 
+            }
+            
+            document.getElementById('templateId').value = '';
+            document.getElementById('templateCategoryId').value = selectedCategoryId;
+            document.getElementById('tempName').value = '';
+            document.getElementById('tempDescription').value = '';
+            document.getElementById('tempPrice').value = '0';
+            document.getElementById('tempMinBudget').value = '0';
+            document.getElementById('tempMaxBudget').value = '0';
+            
+            componentFields = [];
+            renderComponentFields();
+            
+            document.getElementById('templateModalTitle').textContent = '➕ Добавить шаблон';
+            document.getElementById('templateModal').style.display = 'flex';
+        }
+        
+        function editTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (!template) return;
+            
+            document.getElementById('templateId').value = template.id;
+            document.getElementById('templateCategoryId').value = template.category_id;
+            document.getElementById('tempName').value = template.name;
+            document.getElementById('tempDescription').value = template.description || '';
+            document.getElementById('tempPrice').value = template.total_price || 0;
+            document.getElementById('tempMinBudget').value = template.min_budget || 0;
+            document.getElementById('tempMaxBudget').value = template.max_budget || 0;
+            
+            loadComponentsFromJSON(template.components || {});
+            
+            document.getElementById('templateModalTitle').textContent = '✏️ Редактировать шаблон';
+            document.getElementById('templateModal').style.display = 'flex';
+        }
+        
+        async function saveTemplate(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('templateId').value;
+            const components = getComponentsJSON();
+            
+            if (Object.keys(components).length === 0) {
+                alert('Добавьте хотя бы один компонент');
+                return;
+            }
+            
+            const userStr = localStorage.getItem('currentUser');
+            const user = JSON.parse(userStr);
+            
+            const data = {
+                category_id: parseInt(document.getElementById('templateCategoryId').value),
+                name: document.getElementById('tempName').value,
+                description: document.getElementById('tempDescription').value,
+                components: components,
+                total_price: parseInt(document.getElementById('tempPrice').value) || 0,
+                min_budget: parseInt(document.getElementById('tempMinBudget').value) || 0,
+                max_budget: parseInt(document.getElementById('tempMaxBudget').value) || 0
+            };
+            
+            if (!data.name) {
+                alert('Введите название шаблона');
+                return;
+            }
+            
+            const url = id ? `/api/admin/build-templates/${id}` : '/api/admin/build-templates';
+            const method = id ? 'PUT' : 'POST';
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json', 'user-id': user.id },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert(id ? '✅ Шаблон обновлен' : '✅ Шаблон создан');
+                    closeModal('templateModal');
+                    if (selectedCategoryId) {
+                        await loadTemplates(selectedCategoryId);
+                    }
+                } else {
+                    const error = await response.json();
+                    alert('❌ Ошибка: ' + (error.error || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                alert('❌ Ошибка: ' + error.message);
+            }
+        }
+        
+        async function deleteTemplate(id) {
+            if (!confirm('Удалить шаблон?')) return;
+            const userStr = localStorage.getItem('currentUser');
+            const user = JSON.parse(userStr);
+            const response = await fetch(`/api/admin/build-templates/${id}`, {
+                method: 'DELETE',
+                headers: { 'user-id': user.id }
+            });
+            if (response.ok) {
+                alert('Удалено');
+                if (selectedCategoryId) await loadTemplates(selectedCategoryId);
+            }
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

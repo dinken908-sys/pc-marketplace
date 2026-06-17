@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Marketplace - Сборка ПК</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <div class="burger-menu" id="burgerMenu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <h1>PC Marketplace</h1>
+            </div>
+            <div class="header-right"></div>
+        </div>
+        
+        <nav class="desktop-nav">
+            <a href="index.html" class="nav-btn">🛒 Магазин</a>
+            <a href="builder.html" class="nav-btn active">🔧 Сборка ПК</a>
+            <a href="community.html" class="nav-btn">👥 Сборки пользователей</a>
+            <a href="cart.html" class="nav-btn">🛒 Корзина</a>
+            <a href="admin.html" class="nav-btn" id="adminNavBtn" style="display: none;">👑 Админ панель</a>
+            <span class="user-nav">
+                <a href="profile.html" class="nav-btn" id="profileBtn" style="display: none;">👤 Профиль</a>
+                <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;">🚪 Выйти</button>
+                <a href="auth.html" class="nav-btn" id="authBtn">🔐 Вход</a>
+            </span>
+        </nav>
+    </header>
+
+    <!-- Мобильная навигация -->
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html">🛒 Магазин</a>
+        <a href="builder.html" class="active">🔧 Сборка ПК</a>
+        <a href="community.html">👥 Сборки пользователей</a>
+        <a href="cart.html">🛒 Корзина</a>
+        <a href="admin.html" id="mobileAdminNav" style="display: none;">👑 Админ панель</a>
+        <a href="profile.html" id="mobileProfileBtn" style="display: none;">👤 Профиль</a>
+        <button id="mobileLogoutBtn" style="display: none;" onclick="logoutFromMobile()">🚪 Выйти</button>
+        <a href="auth.html" id="mobileAuthBtn">🔐 Вход</a>
+    </div>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <main>
+        <h2>🔧 Виртуальная сборка ПК</h2>
+        
+        <div class="build-mode-selector">
+            <button class="mode-btn active" data-mode="manual" onclick="setBuildMode('manual')">📝 Самостоятельно</button>
+            <button class="mode-btn" data-mode="category" onclick="setBuildMode('category')">🎯 По категориям</button>
+            <button class="mode-btn" data-mode="smart" onclick="setBuildMode('smart')">🤖 Умная сборка</button>
+        </div>
+        
+        <div class="builder-container">
+            <div class="pc-visual">
+                <div class="pc-case">
+                    <h3>📦 Ваша сборка</h3>
+                    
+                    <!-- CPU -->
+                    <div class="pc-component" id="cpuSlot">
+                        <div class="component-image">
+                            <img id="cpuImage" class="component-thumb" src="" alt="CPU" style="display: none;">
+                        </div>
+                        <div class="component-info">
+                            <span class="component-icon">🖥️</span>
+                            <span class="component-label">CPU:</span>
+                            <span class="component-value">Не выбран</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeComponent('cpu')" style="display: none;">✕</button>
+                    </div>
+                    
+                    <!-- GPU -->
+                    <div class="pc-component" id="gpuSlot">
+                        <div class="component-image">
+                            <img id="gpuImage" class="component-thumb" src="" alt="GPU" style="display: none;">
+                        </div>
+                        <div class="component-info">
+                            <span class="component-icon">🎮</span>
+                            <span class="component-label">GPU:</span>
+                            <span class="component-value">Не выбран</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeComponent('gpu')" style="display: none;">✕</button>
+                    </div>
+                    
+                    <!-- RAM -->
+                    <div class="pc-component" id="ramSlot">
+                        <div class="component-image">
+                            <img id="ramImage" class="component-thumb" src="" alt="RAM" style="display: none;">
+                        </div>
+                        <div class="component-info">
+                            <span class="component-icon">💾</span>
+                            <span class="component-label">RAM:</span>
+                            <span class="component-value">Не выбрана</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeComponent('ram')" style="display: none;">✕</button>
+                    </div>
+                    
+                    <!-- Motherboard -->
+                    <div class="pc-component" id="motherboardSlot">
+                        <div class="component-image">
+                            <img id="motherboardImage" class="component-thumb" src="" alt="Motherboard" style="display: none;">
+                        </div>
+                        <div class="component-info">
+                            <span class="component-icon">🔌</span>
+                            <span class="component-label">Материнская плата:</span>
+                            <span class="component-value">Не выбрана</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeComponent('motherboard')" style="display: none;">✕</button>
+                    </div>
+                    
+                    <!-- SSD -->
+                    <div class="pc-component" id="ssdSlot">
+                        <div class="component-image">
+                            <img id="ssdImage" class="component-thumb" src="" alt="SSD" style="display: none;">
+                        </div>
+                        <div class="component-info">
+                            <span class="component-icon">💽</span>
+                            <span class="component-label">SSD:</span>
+                            <span class="component-value">Не выбран</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeComponent('ssd')" style="display: none;">✕</button>
+                    </div>
+                    
+                    <!-- PSU -->
+                    <div class="pc-component" id="psuSlot">
+                        <div class="component-image">
+                            <img id="psuImage" class="component-thumb" src="" alt="PSU" style="display: none;">
+                        </div>
+                        <div class="component-info">
+                            <span class="component-icon">⚡</span>
+                            <span class="component-label">Блок питания:</span>
+                            <span class="component-value">Не выбран</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeComponent('psu')" style="display: none;">✕</button>
+                    </div>
+
+                    <div class="pc-component" id="caseSlot">
+                        <div class="component-info">
+                            <span class="component-icon">📦</span>
+                            <span class="component-label">Корпус:</span>
+                            <span class="component-value">Не выбран</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeComponent('case')" style="display: none;">✕</button>
+                    </div>
+                </div>
+                
+                <div class="build-total">
+                    <strong>💰 Общая стоимость:</strong>
+                    <span id="totalPrice">0</span> ₽
+                </div>
+                
+                <div id="compatibilityPanel" class="compatibility-panel" style="display: none;">
+                    <div class="compatibility-header">
+                        <span class="compatibility-icon">⚠️</span>
+                        <span>Предупреждения совместимости</span>
+                    </div>
+                    <div id="compatibilityWarnings" class="compatibility-warnings"></div>
+                </div>
+                <button onclick="addCurrentBuildToCart()" class="cart-build-btn">🛒 Добавить сборку в корзину</button>
+                <button onclick="saveCurrentBuild()" class="save-build-btn">💾 Сохранить сборку</button>
+                <button onclick="clearAllComponents()" class="clear-build-btn">🗑️ Очистить сборку</button>
+            </div>
+            
+            <div class="components-panel" id="componentsPanel">
+                <!-- Компоненты будут загружены динамически -->
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>PC Marketplace</h3>
+                <p>Интернет-площадка для покупок товаров и виртуальной сборки ПК с проверкой совместимости компонентов. Умный подбор под ваш бюджет и задачи.</p>
+            </div>         
+            <div class="footer-section">
+                <h3>Навигация</h3>
+                <ul>
+                    <li><a href="index.html">🛒 Магазин</a></li>
+                    <li><a href="builder.html">🔧 Сборка ПК</a></li>
+                    <li><a href="community.html">👥 Сборки пользователей</a></li>
+                    <li><a href="cart.html">🛒 Корзина</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 PC Marketplace. Все права защищены. Данный сайт носит информационный характер.</p>
+        </div>
+    </footer> 
+    <script src="script.js"></script>
+    <script>
+                
+        
+        let currentBuildMode = 'manual';
+        let currentType = 'CPU';
+        let searchQuery = '';
+        let searchTimeout = null;
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadComponents();
+            await updateAuthUI();
+            await updateHeaderAvatar();
+            loadSavedBuild();
+            updateBuildDisplay();
+            showComponentsByType('CPU');
+            initMobileMenu();
+        });
+        function initMobileMenu() {
+            const burger = document.getElementById('burgerMenu');
+            const mobileNav = document.getElementById('mobileNav');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            if (!burger) return;
+            
+            function toggleMenu() {
+                burger.classList.toggle('active');
+                mobileNav.classList.toggle('active');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+            }
+            
+            burger.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+            
+            mobileNav.querySelectorAll('a, button').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (mobileNav.classList.contains('active')) toggleMenu();
+                });
+            });
+        }
+        
+        function logoutFromMobile() {
+            if (confirm('Выйти из аккаунта?')) {
+                localStorage.removeItem('currentUser');
+                window.location.reload();
+            }
+        }
+        
+        async function updateAuthUI() {
+            const userStr = localStorage.getItem('currentUser');
+            const authBtn = document.getElementById('authBtn');
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const adminNavBtn = document.getElementById('adminNavBtn');
+            
+            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+            const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+            const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+            const mobileAdminNav = document.getElementById('mobileAdminNav');
+            
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                if (authBtn) authBtn.style.display = 'none';
+                if (profileBtn) profileBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.textContent = `👤 ${currentUser.username}`;
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'none';
+                if (mobileProfileBtn) {
+                    mobileProfileBtn.style.display = 'block';
+                    mobileProfileBtn.textContent = `👤 ${currentUser.username}`;
+                }
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
+                
+                const isAdmin = await isAdminUser(currentUser.id);
+                if (adminNavBtn) adminNavBtn.style.display = isAdmin ? 'inline-block' : 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = isAdmin ? 'block' : 'none';
+            } else {
+                if (authBtn) authBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (adminNavBtn) adminNavBtn.style.display = 'none';
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'block';
+                if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = 'none';
+            }
+        }
+        function $(id) {
+            const element = document.getElementById(id);
+            if (!element) {
+                console.warn(`Элемент с id "${id}" не найден`);
+            }
+            return element;
+        }    
+async function addCurrentBuildToCart() {
+    if (!currentUser) {
+        customConfirm('Войдите в аккаунт, чтобы добавить сборку в корзину', () => {
+            window.location.href = 'auth.html';
+        });
+        return;
+    }
+    
+    const hasComponents = Object.values(currentBuild).some(comp => comp !== null);
+    if (!hasComponents) {
+        alert('Добавьте хотя бы один компонент в сборку');
+        return;
+    }
+    
+    const buildName = prompt('Введите название сборки для добавления в корзину:', 'Моя сборка');
+    if (!buildName) return;
+    
+    const totalPrice = Object.values(currentBuild).reduce((sum, comp) => sum + (comp?.price || 0), 0);
+    
+    let buildImage = 'https://placehold.co/80x80/667eea/white?text=PC';
+    if (currentBuild.case && currentBuild.case.image) {
+        buildImage = currentBuild.case.image;
+    } else if (currentBuild.gpu && currentBuild.gpu.image) {
+        buildImage = currentBuild.gpu.image;
+    } else if (currentBuild.cpu && currentBuild.cpu.image) {
+        buildImage = currentBuild.cpu.image;
+    }
+    
+    let caseName = '';
+    if (currentBuild.case) {
+        caseName = currentBuild.case.name;
+    }
+    
+    const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json', 
+            'user-id': currentUser.id 
+        },
+        body: JSON.stringify({
+            item_type: 'build',
+            item_id: Date.now(),
+            item_data: {
+                id: Date.now(),
+                name: buildName,
+                description: `Сборка ПК${caseName ? ' в корпусе ' + caseName : ''}`,
+                category: 'build',
+                components: currentBuild,
+                total_price: totalPrice,
+                image: buildImage,
+                case: currentBuild.case ? {
+                    name: currentBuild.case.name,
+                    image: currentBuild.case.image
+                } : null
+            },
+            price: totalPrice,
+            quantity: 1
+        })
+    });
+    
+    if (response.ok) {
+        alert('✅ Сборка добавлена в корзину!');
+        if (confirm('Перейти в корзину?')) {
+            window.location.href = 'cart.html';
+        }
+    } else {
+        const error = await response.json();
+        alert('❌ Ошибка при добавлении в корзину: ' + (error.error || 'Неизвестная ошибка'));
+    }
+}
+
+function setBuildMode(mode) {
+    currentBuildMode = mode;
+    
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    modeBtns.forEach(btn => btn.classList.remove('active'));
+    
+    const activeBtn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+    
+    if (mode === 'manual') {
+        showComponentsByType(currentType);
+    } else if (mode === 'category') {
+        showCategoryBuilds();
+    } else if (mode === 'smart') {
+        showSmartBuild();
+    }
+}
+        
+    function showComponentsByType(type) {
+    currentType = type;
+    let filtered = components.filter(c => c.type === type);
+    
+    if (searchQuery) {
+        filtered = filtered.filter(c => 
+            c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (c.specs && c.specs.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+    }
+    
+    let typeTitle = '';
+    if (type === 'CPU') typeTitle = 'Процессор';
+    else if (type === 'GPU') typeTitle = 'Видеокарта';
+    else if (type === 'RAM') typeTitle = 'Оперативная память';
+    else if (type === 'Motherboard') typeTitle = 'Материнская плата';
+    else if (type === 'SSD') typeTitle = 'Накопитель SSD';
+    else if (type === 'PSU') typeTitle = 'Блок питания';
+    else typeTitle = type;
+    
+    const html = `
+        <div class="search-bar">
+            <input type="text" id="componentSearch" placeholder="🔍 Поиск компонентов..." oninput="handleSearchInput()">
+            ${searchQuery ? `<button class="clear-search" onclick="clearSearch()">✕</button>` : ''}
+        </div>
+        <h3>Выберите ${typeTitle}</h3>
+        <div class="component-type-tabs">
+            <button onclick="showComponentsByType('CPU')" class="type-tab ${type === 'CPU' ? 'active' : ''}">Процессор</button>
+            <button onclick="showComponentsByType('GPU')" class="type-tab ${type === 'GPU' ? 'active' : ''}">Видеокарта</button>
+            <button onclick="showComponentsByType('RAM')" class="type-tab ${type === 'RAM' ? 'active' : ''}">Оперативная память</button>
+            <button onclick="showComponentsByType('Motherboard')" class="type-tab ${type === 'Motherboard' ? 'active' : ''}">Материнская плата</button>
+            <button onclick="showComponentsByType('SSD')" class="type-tab ${type === 'SSD' ? 'active' : ''}">Накопитель SSD</button>
+            <button onclick="showComponentsByType('PSU')" class="type-tab ${type === 'PSU' ? 'active' : ''}">Блок питания</button>
+            <button onclick="showComponentsByType('Case')" class="type-tab ${type === 'Case' ? 'active' : ''}">Корпус</button>
+        </div>
+        <div class="components-count">Найдено: ${filtered.length} компонентов</div>
+        <div class="components-list">
+            ${filtered.map(comp => {
+                let extraInfo = '';
+                if (comp.type === 'CPU' && comp.socket) extraInfo = `📌 ${comp.socket}`;
+                if (comp.type === 'RAM' && comp.ram_type) extraInfo = `💾 ${comp.ram_type}`;
+                if (comp.type === 'Motherboard' && comp.socket) extraInfo = `🔌 ${comp.socket} | ${comp.ram_type || 'DDR?'}`;
+                if (comp.type === 'PSU' && comp.power_wattage) extraInfo = `⚡ ${comp.power_wattage}W`;
+                if (comp.type === 'GPU' && comp.power_wattage) extraInfo = `⚡ ${comp.power_wattage}W`;
+                
+                return `
+                    <div class="component-item">
+                        <div class="component-item-image">
+                            <img src="${comp.image || 'https://placehold.co/60x60/667eea/white?text=PC'}" 
+                                 onerror="this.src='https://placehold.co/60x60/667eea/white?text=PC'"
+                                 style="width: 50px; height: 50px; object-fit: contain; background: #f8f9fa; border-radius: 8px; padding: 5px;">
+                        </div>
+                        <div class="component-item-details">
+                            <div class="component-item-info">
+                                <strong>${comp.name}</strong>
+                                <div class="component-item-price">${comp.price.toLocaleString('ru-RU')} ₽</div>
+                            </div>
+                            <small>${comp.specs ? comp.specs.substring(0, 60) + (comp.specs.length > 60 ? '...' : '') : 'Характеристики не указаны'}</small>
+                            <div class="component-stock">📦 в наличии: ${comp.stock} шт. ${extraInfo ? `| ${extraInfo}` : ''}</div>
+                            <div class="component-actions">
+                                <button onclick="event.stopPropagation(); showComponentDetails(${comp.id})" class="details-small-btn">📋 Подробнее</button>
+                                <button onclick="event.stopPropagation(); selectComponent(${comp.id}, '${comp.type}')" class="select-component-btn">✅ Выбрать</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+    document.getElementById('componentsPanel').innerHTML = html;
+    
+    if (searchQuery) {
+        const searchInput = document.getElementById('componentSearch');
+        if (searchInput) {
+            searchInput.value = searchQuery;
+            searchInput.focus();
+        }
+    }
+}
+        
+function handleSearchInput() {
+    const searchInput = document.getElementById('componentSearch');
+    if (!searchInput) return;
+    
+    const newValue = searchInput.value;
+    
+    if (searchTimeout) clearTimeout(searchTimeout);
+    
+    searchTimeout = setTimeout(() => {
+        searchQuery = newValue;
+        showComponentsByType(currentType);
+    }, 300);
+}
+        
+function clearSearch() {
+    searchQuery = '';
+    showComponentsByType(currentType);
+}
+        
+function selectComponent(id, type) {
+    const component = components.find(c => c.id === id);
+    if (!component) {
+        console.error('Компонент не найден:', id);
+        return;
+    }
+    
+    const typeKey = type.toLowerCase();
+    currentBuild[typeKey] = component;
+    localStorage.setItem('tempBuild', JSON.stringify(currentBuild));
+    updateBuildDisplay();
+    showComponentsByType(type);
+}
+        
+function removeComponent(componentType) {
+    customConfirm(`Удалить ${componentType.toUpperCase()} из сборки?`, () => {
+        if (currentBuild[componentType]) {
+            currentBuild[componentType] = null;
+            localStorage.setItem('tempBuild', JSON.stringify(currentBuild));
+            updateBuildDisplay();
+            showComponentsByType(currentType);
+        }
+    });
+}
+        
+        function clearAllComponents() {
+            customConfirm('Очистить всю сборку?', () => {
+                currentBuild = {
+                    cpu: null,
+                    gpu: null,
+                    ram: null,
+                    motherboard: null,
+                    ssd: null,
+                    psu: null,
+                    case: null
+                };
+                localStorage.setItem('tempBuild', JSON.stringify(currentBuild));
+                updateBuildDisplay();
+                showComponentsByType(currentType);
+            });
+        }
+        
+        function updateBuildDisplay() {
+            const slots = ['cpu', 'gpu', 'ram', 'motherboard', 'ssd', 'psu', 'case'];
+            let total = 0;
+            
+            for (const slot of slots) {
+                const element = document.getElementById(`${slot}Slot`);
+                const imgElement = document.getElementById(`${slot}Image`);
+                const valueSpan = element?.querySelector('.component-value');
+                const removeBtn = element?.querySelector('.remove-btn');
+                const component = currentBuild[slot];
+                
+                if (component) {
+                    total += component.price;
+                    if (imgElement) {
+                        imgElement.src = component.image || 'https://placehold.co/50x50/667eea/white?text=PC';
+                        imgElement.style.display = 'block';
+                        imgElement.onerror = function() {
+                            this.src = 'https://placehold.co/50x50/667eea/white?text=PC';
+                        };
+                    }
+                    let extraInfo = '';
+                    if (slot === 'cpu' && component.socket) extraInfo = `<small class="comp-spec">📌 ${component.socket}</small>`;
+                    if (slot === 'ram' && component.ram_type) extraInfo = `<small class="comp-spec">💾 ${component.ram_type}</small>`;
+                    if (slot === 'motherboard' && component.socket) extraInfo = `<small class="comp-spec">🔌 ${component.socket} | ${component.ram_type || 'DDR?'}</small>`;
+                    if (slot === 'psu' && component.power_wattage) extraInfo = `<small class="comp-spec">⚡ ${component.power_wattage}W</small>`;
+                    if (slot === 'gpu' && component.power_wattage) extraInfo = `<small class="comp-spec">⚡ ${component.power_wattage}W</small>`;
+                    if (slot === 'case' && component.form_factor) extraInfo = `<small class="comp-spec">📏 ${component.form_factor}</small>`;
+                    
+                    if (valueSpan) {
+                                valueSpan.innerHTML = `${component.name} <span class="component-price">(${component.price.toLocaleString('ru-RU')} ₽)</span> ${extraInfo}`;
+                    }
+                    if (removeBtn) removeBtn.style.display = 'flex';
+                } else {
+                    if (imgElement) imgElement.style.display = 'none';
+                    if (valueSpan) valueSpan.innerHTML = 'Не выбран';
+                    if (removeBtn) removeBtn.style.display = 'none';
+                }
+            }
+            
+            const totalElement = document.getElementById('totalPrice');
+            if (totalElement) totalElement.textContent = total.toLocaleString('ru-RU');
+            
+            checkCompatibility();
+        }
+        
+        async function checkCompatibility() {
+            try {
+                const response = await fetch('/api/check-compatibility', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ build: currentBuild })
+                });
+                
+                const result = await response.json();
+                const panel = document.getElementById('compatibilityPanel');
+                const warningsDiv = document.getElementById('compatibilityWarnings');
+                
+                if (result.warnings && result.warnings.length > 0) {
+                    panel.style.display = 'block';
+                    panel.classList.remove('compatibility-ok');
+                    warningsDiv.innerHTML = result.warnings.map(w => 
+                        `<div class="compatibility-warning-item">${w}</div>`
+                    ).join('');
+                } else {
+                    panel.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Compatibility check error:', error);
+            }
+        }
+        
+async function showCategoryBuilds() {
+    try {
+        const response = await fetch('/api/build-categories/active');
+        if (!response.ok) {
+            throw new Error('Ошибка загрузки категорий');
+        }
+        
+        const categories = await response.json();
+        console.log('Загружены категории:', categories);
+        
+        if (!categories || categories.length === 0) {
+            document.getElementById('componentsPanel').innerHTML = `
+                <div class="empty-state">
+                    <p>😕 Нет доступных категорий</p>
+                    <p>Администратор добавит категории позже</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = `
+            <h3>🎯 Выберите цель сборки</h3>
+            <div class="category-buttons">
+                ${categories.map(cat => `
+                    <button onclick="getRecommendedBuild(${cat.id})" class="category-btn">
+                        ${cat.icon || '🎯'} ${escapeHtml(cat.name)}
+                    </button>
+                `).join('')}
+            </div>
+            <div id="recommendedBuild"></div>
+        `;
+        document.getElementById('componentsPanel').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        document.getElementById('componentsPanel').innerHTML = '<div class="error">❌ Ошибка загрузки категорий</div>';
+    }
+}
+
+async function getRecommendedBuild(categoryId) {
+    try {
+        console.log('Загрузка шаблонов для категории:', categoryId);
+        
+        const response = await fetch(`/api/build-templates/${categoryId}`);
+        if (!response.ok) {
+            throw new Error('Ошибка загрузки шаблонов');
+        }
+        
+        const templates = await response.json();
+        console.log('Загружены шаблоны:', templates);
+        
+        if (!templates || templates.length === 0) {
+            document.getElementById('recommendedBuild').innerHTML = `
+                <div class="recommended-build">
+                    <h4>😕 Нет шаблонов для этой категории</h4>
+                    <p>Администратор добавит шаблоны позже</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = `
+            <h4>🎯 Рекомендуемые сборки</h4>
+            <div class="templates-list">
+                ${templates.map(template => `
+                    <div class="template-card" onclick="applyTemplate(${template.id})">
+                        <div class="template-header">
+                            <strong>${escapeHtml(template.name)}</strong>
+                            <span class="template-price">💰 ${(template.total_price || 0).toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                        <p class="template-desc">${escapeHtml(template.description) || 'Описание отсутствует'}</p>
+                        <div class="template-components">
+                            ${template.components && typeof template.components === 'object' ? 
+                                Object.entries(template.components).map(([key, value]) => 
+                                    `<span class="template-tag">${key}: ${escapeHtml(String(value))}</span>`
+                                ).join('') : 
+                                '<span class="template-tag">Нет компонентов</span>'
+                            }
+                        </div>
+                        <button class="apply-template-btn" onclick="event.stopPropagation(); applyTemplate(${template.id})">✅ Использовать</button>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        document.getElementById('recommendedBuild').innerHTML = html;
+    } catch (error) {
+        console.error('Error loading templates:', error);
+        document.getElementById('recommendedBuild').innerHTML = '<div class="error">❌ Ошибка загрузки шаблонов</div>';
+    }
+}
+
+        
+        async function applyTemplate(templateId) {
+    try {
+        console.log('=== ПРИМЕНЕНИЕ ШАБЛОНА ===');
+        console.log('ID шаблона:', templateId);
+        
+        if (!components || components.length === 0) {
+            console.log('Загрузка компонентов...');
+            await loadComponents();
+        }
+        console.log('Доступно компонентов:', components.length);
+        
+        const response = await fetch(`/api/build-templates/${templateId}`);
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const template = await response.json();
+        console.log('Получен шаблон:', template);
+        
+        if (!template.components) {
+            console.error('Шаблон не содержит компонентов, полный объект:', template);
+            
+            if (template.components_data) {
+                template.components = template.components_data;
+            } else if (template.components_json) {
+                try {
+                    template.components = JSON.parse(template.components_json);
+                } catch (e) {
+                    console.error('Ошибка парсинга components_json:', e);
+                }
+            } else {
+                console.log('Создаем тестовые компоненты для шаблона');
+                const templateName = template.name || '';
+                
+                let testComponents = {};
+                if (templateName.includes('Офис') || templateName.includes('Школа')) {
+                    testComponents = { cpu: 'Intel Core i3', ram: '8GB DDR4', ssd: '256GB' };
+                } else if (templateName.includes('Работа') || templateName.includes('Станция')) {
+                    testComponents = { cpu: 'Intel Core i5', ram: '16GB DDR4', ssd: '512GB' };
+                } else if (templateName.includes('Игр')) {
+                    testComponents = { cpu: 'AMD Ryzen 5', gpu: 'RTX 3060', ram: '16GB DDR4', ssd: '1TB' };
+                } else if (templateName.includes('Монтаж')) {
+                    testComponents = { cpu: 'Intel Core i7', gpu: 'RTX 4070', ram: '32GB DDR5', ssd: '2TB' };
+                } else {
+                    testComponents = { cpu: 'Intel Core i5', ram: '16GB DDR4', ssd: '512GB' };
+                }
+                
+                template.components = testComponents;
+                console.log('Созданы тестовые компоненты:', testComponents);
+            }
+        }
+        
+        let templateComponents = template.components;
+        if (typeof templateComponents === 'string') {
+            try {
+                templateComponents = JSON.parse(templateComponents);
+                console.log('Распарсенные компоненты:', templateComponents);
+            } catch (e) {
+                console.error('Ошибка парсинга компонентов:', e);
+                alert('❌ Неверный формат компонентов в шаблоне');
+                return;
+            }
+        }
+        
+        if (!templateComponents || Object.keys(templateComponents).length === 0) {
+            console.error('Компоненты пусты:', templateComponents);
+            alert('❌ Этот шаблон не содержит компонентов. Пожалуйста, обновите шаблон в админ-панели.');
+            return;
+        }
+        
+        console.log('Компоненты шаблона для поиска:', templateComponents);
+        
+        const newBuild = {};
+        const errors = [];
+        const foundComponents = [];
+        
+        for (const [componentType, componentValue] of Object.entries(templateComponents)) {
+            console.log(`Поиск ${componentType}: "${componentValue}"`);
+            
+            if (!componentValue || componentValue === '') {
+                console.log(`Пропуск пустого значения для ${componentType}`);
+                continue;
+            }
+            
+            let foundComponent = null;
+            const searchTerm = String(componentValue).toLowerCase();
+            const typeUpper = String(componentType).toUpperCase();
+            
+            foundComponent = components.find(c => 
+                c.type === typeUpper && 
+                c.name.toLowerCase() === searchTerm
+            );
+            
+            if (!foundComponent) {
+                foundComponent = components.find(c => 
+                    c.type === typeUpper && 
+                    c.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (!foundComponent && searchTerm.includes(' ')) {
+                const keywords = searchTerm.split(' ');
+                foundComponent = components.find(c => {
+                    if (c.type !== typeUpper) return false;
+                    const nameLower = c.name.toLowerCase();
+                    return keywords.some(keyword => keyword.length > 2 && nameLower.includes(keyword));
+                });
+            }
+            
+            if (foundComponent) {
+                const key = String(componentType).toLowerCase();
+                newBuild[key] = foundComponent;
+                foundComponents.push(`${componentType}: ${foundComponent.name}`);
+                console.log(`✅ Найден компонент ${componentType}:`, foundComponent.name);
+            } else {
+                errors.push(`${componentType}: ${componentValue}`);
+                console.warn(`❌ Компонент не найден: ${componentType} - ${componentValue}`);
+            }
+        }
+        
+        if (foundComponents.length > 0) {
+            currentBuild = { ...currentBuild, ...newBuild };
+            localStorage.setItem('tempBuild', JSON.stringify(currentBuild));
+            updateBuildDisplay();
+            setBuildMode('manual');
+            
+            let message = `✅ Шаблон "${template.name}" применен!\n\n`;
+            message += `Найдено компонентов: ${foundComponents.length}\n`;
+            message += foundComponents.map(c => `  • ${c}`).join('\n');
+            
+            if (errors.length > 0) {
+                message += `\n\n⚠️ Не найдены:\n${errors.map(e => `  • ${e}`).join('\n')}`;
+            }
+            
+            alert(message);
+        } else {
+            alert(`❌ Не удалось найти ни одного компонента для шаблона "${template.name}"\n\nПроверьте, что в базе данных есть компоненты с названиями, указанными в шаблоне.`);
+        }
+        
+    } catch (error) {
+        console.error('Error applying template:', error);
+        alert('❌ Ошибка при применении шаблона: ' + error.message);
+    }
+}
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+function showSmartBuild() {
+    const html = `
+        <div class="smart-chat-container">
+            <div class="chat-header">
+                <span class="chat-icon">🤖</span>
+                <span class="chat-title">AI-консультант по сборке ПК</span>
+                <button class="chat-reset" onclick="resetChat()">🔄 Начать заново</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        Добрый день! 👋<br><br>
+                        Я помогу вам собрать <strong>совместимый</strong> компьютер под ваши задачи и бюджет.<br>
+                        <strong>Для начало напишите, для чего собираете персональный компьютер.</strong><br>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Напишите, для чего вам нужен компьютер..." onkeypress="handleChatKeyPress(event)">
+                <button onclick="sendChatMessage()" class="chat-send-btn">📤 Отправить</button>
+            </div>
+        </div>
+        <div id="chatBuildResult" style="display: none;"></div>
+    `;
+    document.getElementById('componentsPanel').innerHTML = html;
+    
+    sessionStorage.removeItem('chatState');
+    sessionStorage.removeItem('chatBuild');
+    
+    chatState = {
+        step: 'waiting',
+        purpose: null,
+        purposeText: null,
+        budget: null,
+        budgetValue: null,
+        collectedComponents: null,
+        compatibilityWarnings: null
+    };
+}
+
+function handleChatKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendChatMessage();
+    }
+}
+
+async function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    addMessageToChat('user', message);
+    input.value = '';
+    
+    await processUserMessage(message);
+}
+
+function addMessageToChat(sender, text) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = sender === 'bot' ? '🤖' : '👤';
+    
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    content.innerHTML = text;
+    
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(content);
+    messagesDiv.appendChild(messageDiv);
+    
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+async function processUserMessage(message) {
+    const lowerMessage = message.toLowerCase();
+    
+    if (chatState.step === 'completed' || chatState.step === 'waiting_for_new') {
+        if (lowerMessage.includes('спасиб') || lowerMessage.includes('помог')) {
+            addMessageToChat('bot', 'Всегда рад помочь! Если понадобится подобрать другую сборку, просто напишите "новая сборка" или нажмите кнопку "Начать заново" 👍');
+            return;
+        } else if (lowerMessage.includes('новая') || lowerMessage.includes('другую') || lowerMessage.includes('ещё')) {
+            resetChat();
+            return;
+        } else {
+            addMessageToChat('bot', 'Если хотите подобрать другую сборку, нажмите кнопку "Начать заново" вверху чата.');
+            return;
+        }
+    }
+    
+    addMessageToChat('bot', '<span class="typing-indicator">🤔 Думаю...</span>');
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const messagesDiv = document.getElementById('chatMessages');
+    const lastMessage = messagesDiv.lastChild;
+    if (lastMessage && lastMessage.querySelector('.typing-indicator')) {
+        messagesDiv.removeChild(lastMessage);
+    }
+    
+    const detectedPurpose = detectPurposeInMessage(lowerMessage);
+    const detectedBudget = detectBudgetInMessage(message);
+    
+    if (detectedPurpose && detectedBudget) {
+        chatState.purpose = detectedPurpose;
+        chatState.purposeText = getPurposeText(detectedPurpose);
+        chatState.budget = 'exact';
+        chatState.budgetValue = detectedBudget;
+        chatState.step = 'loading';
+        
+        addMessageToChat('bot', `Понял! ${chatState.purposeText}, бюджет: ${detectedBudget.toLocaleString('ru-RU')} ₽.<br><br>🔍 Подбираю оптимальную сборку...`);
+        addMessageToChat('bot', '<span class="typing-indicator">🖥️ Анализирую комплектующие...</span>');
+        
+        setTimeout(async () => {
+            const msgDiv = document.getElementById('chatMessages');
+            const lastMsgDiv = msgDiv.lastChild;
+            if (lastMsgDiv && lastMsgDiv.querySelector('.typing-indicator')) {
+                msgDiv.removeChild(lastMsgDiv);
+            }
+            await generateBuildFromChat();
+        }, 1500);
+        return;
+    }
+    
+    if (detectedBudget && !detectedPurpose) {
+        if (chatState.purpose) {
+            chatState.budget = 'exact';
+            chatState.budgetValue = detectedBudget;
+            chatState.step = 'loading';
+            
+            addMessageToChat('bot', `Понял! Бюджет: ${detectedBudget.toLocaleString('ru-RU')} ₽.<br><br>🔍 Подбираю оптимальную сборку для ${chatState.purposeText}...`);
+            addMessageToChat('bot', '<span class="typing-indicator">🖥️ Анализирую комплектующие...</span>');
+            
+            setTimeout(async () => {
+                const msgDiv = document.getElementById('chatMessages');
+                const lastMsgDiv = msgDiv.lastChild;
+                if (lastMsgDiv && lastMsgDiv.querySelector('.typing-indicator')) {
+                    msgDiv.removeChild(lastMsgDiv);
+                }
+                await generateBuildFromChat();
+            }, 1500);
+            return;
+        } else {
+            chatState.budgetValue = detectedBudget;
+            chatState.step = 'awaiting_purpose';
+            
+            addMessageToChat('bot', `Бюджет: ${detectedBudget.toLocaleString('ru-RU')} ₽.<br><br>🎯 Для каких целей вам нужен компьютер?<br>👉 Например: <b>для игр</b>, <b>для работы</b>, <b>для учёбы</b> или <b>для монтажа</b>`);
+            return;
+        }
+    }
+    
+    if (detectedPurpose && !detectedBudget) {
+        if (chatState.budgetValue) {
+            chatState.purpose = detectedPurpose;
+            chatState.purposeText = getPurposeText(detectedPurpose);
+            chatState.step = 'loading';
+            
+            addMessageToChat('bot', `Отлично! ${chatState.purposeText}, бюджет: ${chatState.budgetValue.toLocaleString('ru-RU')} ₽.<br><br>🔍 Подбираю оптимальную сборку...`);
+            addMessageToChat('bot', '<span class="typing-indicator">🖥️ Анализирую комплектующие...</span>');
+            
+            setTimeout(async () => {
+                const msgDiv = document.getElementById('chatMessages');
+                const lastMsgDiv = msgDiv.lastChild;
+                if (lastMsgDiv && lastMsgDiv.querySelector('.typing-indicator')) {
+                    msgDiv.removeChild(lastMsgDiv);
+                }
+                await generateBuildFromChat();
+            }, 1500);
+            return;
+        } else {
+            chatState.purpose = detectedPurpose;
+            chatState.purposeText = getPurposeText(detectedPurpose);
+            chatState.step = 'awaiting_budget';
+            
+            addMessageToChat('bot', `Отлично! ${chatState.purposeText}.<br><br>💰 Какой у вас бюджет?<br>👉 Например: <b>50 000 рублей</b>, <b>до 100 тысяч</b>, <b>около 70 000</b> или <b>минимальный</b>`);
+            return;
+        }
+    }
+    
+    if (chatState.step === 'waiting' || !chatState.purpose) {
+        detectPurpose(message);
+    }
+    else if (chatState.step === 'awaiting_budget' || (chatState.purpose && !chatState.budgetValue)) {
+        detectBudget(message);
+    }
+    else if (chatState.step === 'confirming') {
+        await handleConfirmation(message);
+    }
+    else {
+        addMessageToChat('bot', 'Извините, я не совсем понял. Давайте начнём заново? Напишите "да" или нажмите кнопку "Начать заново".');
+        chatState.step = 'waiting';
+    }
+}
+
+function detectPurposeInMessage(message) {
+    if (message.includes('игр') || message.includes('играть') || message.includes('гейминг') || 
+        message.includes('gaming') || message.includes('во что-то поиграть') || 
+        message.includes('компьютер для игр') || message.includes('игровой') ||
+        message.includes('геймер') || message.includes('steam')) {
+        return 'gaming';
+    } 
+    else if (message.includes('работ') || message.includes('офис') || message.includes('программировани') || 
+             message.includes('work') || message.includes('кодить') || message.includes('разработка') ||
+             message.includes('1с') || message.includes('эксель') || message.includes('word') ||
+             message.includes('эксель') || message.includes('бизнес')) {
+        return 'work';
+    } 
+    else if (message.includes('школ') || message.includes('учеб') || message.includes('студент') || 
+             message.includes('school') || message.includes('универ') || message.includes('институт') ||
+             message.includes('домашний') || message.includes('для дома') || message.includes('дома')) {
+        return 'school';
+    } 
+    else if (message.includes('монтаж') || message.includes('видео') || message.includes('editing') || 
+             message.includes('photoshop') || message.includes('3d') || message.includes('рендер') ||
+             message.includes('да винчи') || message.includes('after effects') || message.includes('premiere') ||
+             message.includes('графика') || message.includes('дизайн')) {
+        return 'editing';
+    }
+    return null;
+}
+function detectBudgetInMessage(message) {
+    const lowerMsg = message.toLowerCase();
+    let budgetValue = null;
+   
+    const thousandPatterns = [
+        /(\d{1,3}(?:\s?\d{0,3})?)\s*тысяч/i,
+        /(\d{1,3}(?:\s?\d{0,3})?)\s*тыс/i,
+        /(\d{1,3})\s*к/i
+    ];
+    
+    for (const pattern of thousandPatterns) {
+        const match = message.match(pattern);
+        if (match) {
+            let num = parseInt(match[1].replace(/\s/g, ''));
+            if (!isNaN(num)) {
+                budgetValue = num * 1000;
+                break;
+            }
+        }
+    }
+    if (!budgetValue) {
+        const numberPatterns = [
+            /(\d{1,3}(?:[\s]?\d{3})?)/g,
+            /(\d{1,3}(?:[.,]\d{3})?)/g
+        ];
+        
+        for (const pattern of numberPatterns) {
+            let match;
+            while ((match = pattern.exec(message)) !== null) {
+                let numStr = match[1].replace(/[\s.,]/g, '');
+                let num = parseInt(numStr, 10);
+                if (!isNaN(num) && num >= 1000 && num <= 10000000) {
+                    budgetValue = num;
+                    break;
+                }
+            }
+            if (budgetValue) break;
+        }
+    }
+    
+    if (!budgetValue) {
+        const aboutPatterns = [
+            /около\s*(\d{1,3}(?:\s?\d{3})?)\s*тысяч?/i,
+            /примерно\s*(\d{1,3}(?:\s?\d{3})?)\s*тысяч?/i,
+            /до\s*(\d{1,3}(?:\s?\d{3})?)\s*тысяч?/i,
+            /в районе\s*(\d{1,3}(?:\s?\d{3})?)\s*тысяч?/i
+        ];
+        
+        for (const pattern of aboutPatterns) {
+            const match = message.match(pattern);
+            if (match) {
+                let num = parseInt(match[1].replace(/\s/g, ''));
+                if (!isNaN(num)) {
+                    budgetValue = num * 1000;
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (!budgetValue) {
+        const directNumbers = message.match(/\b([1-9][0-9]{4,6})\b/g);
+        if (directNumbers) {
+            budgetValue = parseInt(directNumbers[0]);
+        }
+    }
+    
+    return budgetValue;
+}
+
+function getPurposeText(purpose) {
+    const texts = {
+        gaming: '🎮 Компьютер для игр',
+        work: '💼 Компьютер для работы',
+        school: '🏫 Компьютер для учёбы',
+        editing: '🎬 Компьютер для монтажа'
+    };
+    return texts[purpose] || 'Компьютер';
+}
+
+function detectPurpose(message) {
+    const lowerMsg = message.toLowerCase();
+    
+    let purpose = null;
+    let purposeText = '';
+    
+    if (lowerMsg.includes('игр') || lowerMsg.includes('играть') || lowerMsg.includes('гейминг') || 
+        lowerMsg.includes('gaming') || lowerMsg.includes('во что-то поиграть') || 
+        lowerMsg.includes('компьютер для игр') || lowerMsg.includes('игровой')) {
+        purpose = 'gaming';
+        purposeText = '🎮 для игр';
+    } 
+    else if (lowerMsg.includes('работ') || lowerMsg.includes('офис') || lowerMsg.includes('программировани') || 
+             lowerMsg.includes('work') || lowerMsg.includes('кодить') || lowerMsg.includes('разработка') ||
+             lowerMsg.includes('1с') || lowerMsg.includes('эксель') || lowerMsg.includes('word')) {
+        purpose = 'work';
+        purposeText = '💼 для работы и программирования';
+    } 
+    else if (lowerMsg.includes('школ') || lowerMsg.includes('учеб') || lowerMsg.includes('студент') || 
+             lowerMsg.includes('school') || lowerMsg.includes('универ') || lowerMsg.includes('институт') ||
+             lowerMsg.includes('домашний') || lowerMsg.includes('для дома')) {
+        purpose = 'school';
+        purposeText = '🏫 для учёбы и дома';
+    } 
+    else if (lowerMsg.includes('монтаж') || lowerMsg.includes('видео') || lowerMsg.includes('editing') || 
+             lowerMsg.includes('photoshop') || lowerMsg.includes('3d') || lowerMsg.includes('рендер') ||
+             lowerMsg.includes('да винчи') || lowerMsg.includes('after effects') || lowerMsg.includes('premiere')) {
+        purpose = 'editing';
+        purposeText = '🎬 для видеомонтажа и графики';
+    } 
+    else {
+        addMessageToChat('bot', 'Для каких целей вам нужен компьютер?<br><br>👉 Например:<br>• <b>для игр</b> (киберспорт, AAA-проекты)<br>• <b>для работы</b> (программирование, офис)<br>• <b>для учёбы</b> (школа, университет)<br>• <b>для монтажа</b> (видео, фото, 3D)');
+        chatState.step = 'waiting';
+        return;
+    }
+    
+    chatState.purpose = purpose;
+    chatState.purposeText = purposeText;
+    chatState.step = 'awaiting_budget';
+    
+    addMessageToChat('bot', `Отлично! Компьютер ${purposeText}.<br><br>💰 Какой у вас бюджет?<br><br>👉 Например:<br>• <b>50 000 рублей</b><br>• <b>до 100 тысяч</b><br>• <b>около 70 000</b><br>• <b>минимальный</b>`);
+}
+
+function detectBudget(message) {
+    const lowerMsg = message.toLowerCase();
+    
+    const cleanMessage = message.replace(/[^\d\s]/g, ' ').trim();
+    
+    let budgetValue = null;
+    let budgetType = 'exact';
+    
+    if (lowerMsg.includes('минимальн') || lowerMsg.includes('миним') || 
+        lowerMsg.includes('дешев') || lowerMsg.includes('бюджет') ||
+        lowerMsg.includes('недорог') || lowerMsg.includes('самый дешёвый')) {
+        budgetType = 'minimal';
+        budgetValue = 40000;
+        chatState.budget = budgetType;
+        chatState.budgetValue = budgetValue;
+        chatState.step = 'loading';
+        
+        addMessageToChat('bot', `Понял! Бюджет: минимальный (до ${budgetValue.toLocaleString('ru-RU')} ₽).<br><br>🔍 Подбираю оптимальную сборку...`);
+        
+        addMessageToChat('bot', '<span class="typing-indicator">🖥️ Анализирую комплектующие...</span>');
+        
+        setTimeout(async () => {
+            const messagesDiv = document.getElementById('chatMessages');
+            const lastMsg = messagesDiv.lastChild;
+            if (lastMsg && lastMsg.querySelector('.typing-indicator')) {
+                messagesDiv.removeChild(lastMsg);
+            }
+            await generateBuildFromChat();
+        }, 1500);
+        return;
+    }
+    
+    const numberPatterns = [
+        /\b(\d{1,3}(?:\s?\d{3})*)\b/g,
+        /(\d{1,3}(?:[.,]\d{3})*)/g,
+        /(\d{1,3})\s*[кk]\b/gi
+    ];
+    
+    for (const pattern of numberPatterns) {
+        let match;
+        while ((match = pattern.exec(message)) !== null) {
+            let numStr = match[1].replace(/[\s.,]/g, '');
+            let num = parseInt(numStr, 10);
+            
+            if (pattern.toString().includes('[кk]') && match[0].toLowerCase().includes('к')) {
+                num = num * 1000;
+            }
+            
+            if (!isNaN(num) && num > 1000 && num < 10000000) {
+                budgetValue = num;
+                break;
+            }
+        }
+        if (budgetValue) break;
+    }
+    
+    if (!budgetValue) {
+        const ranges = [
+            { pattern: /до\s*(\d{1,3}(?:\s?\d{3})?)\s*тысяч?/i, multiplier: 1000 },
+            { pattern: /около\s*(\d{1,3}(?:\s?\d{3})?)\s*тысяч?/i, multiplier: 1000 },
+            { pattern: /примерно\s*(\d{1,3}(?:\s?\d{3})?)\s*тысяч?/i, multiplier: 1000 },
+            { pattern: /(\d{1,3}(?:\s?\d{3})?)\s*тысяч\s*рублей?/i, multiplier: 1000 }
+        ];
+        
+        for (const range of ranges) {
+            const match = message.match(range.pattern);
+            if (match) {
+                let num = parseInt(match[1].replace(/\s/g, ''), 10);
+                if (!isNaN(num)) {
+                    budgetValue = num * range.multiplier;
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (!budgetValue) {
+        addMessageToChat('bot', 'Не могу определить сумму. Пожалуйста, укажите бюджет в рублях.<br>👉 Например: <b>70 000 рублей</b>, <b>50000</b>, <b>50к</b> или <b>минимальный</b>');
+        return;
+    }
+    
+    chatState.budget = budgetType;
+    chatState.budgetValue = budgetValue;
+    chatState.step = 'loading';
+    
+    addMessageToChat('bot', `Понял! Бюджет: ${budgetValue.toLocaleString('ru-RU')} ₽.<br><br>🔍 Подбираю оптимальную сборку...`);
+    
+    addMessageToChat('bot', '<span class="typing-indicator">🖥️ Анализирую комплектующие...</span>');
+    
+    setTimeout(async () => {
+        const messagesDiv = document.getElementById('chatMessages');
+        const lastMsg = messagesDiv.lastChild;
+        if (lastMsg && lastMsg.querySelector('.typing-indicator')) {
+            messagesDiv.removeChild(lastMsg);
+        }
+        await generateBuildFromChat();
+    }, 1500);
+}
+
+async function generateBuildFromChat() {
+    const allComponents = [...components];
+    const maxBudget = chatState.budgetValue;
+    const purpose = chatState.purpose;
+    
+    let distribution = {};
+    if (purpose === 'school') {
+        distribution = { cpu: 0.30, ram: 0.15, ssd: 0.10, motherboard: 0.15, psu: 0.10, case: 0.10, gpu: 0.10 };
+    } else if (purpose === 'work') {
+        distribution = { cpu: 0.35, ram: 0.15, ssd: 0.10, motherboard: 0.15, psu: 0.10, case: 0.05, gpu: 0.10 };
+    } else if (purpose === 'gaming') {
+        distribution = { cpu: 0.25, gpu: 0.40, ram: 0.10, ssd: 0.05, motherboard: 0.10, psu: 0.05, case: 0.05 };
+    } else {
+        distribution = { cpu: 0.30, gpu: 0.30, ram: 0.15, ssd: 0.05, motherboard: 0.10, psu: 0.05, case: 0.05 };
+    }
+    
+    const selected = {};
+    const errors = [];
+    let lastSelectedMotherboard = null;
+    let lastSelectedCPU = null;
+    
+    let mbPrice = maxBudget * distribution.motherboard;
+    let compatibleMotherboards = allComponents.filter(c => c.type === 'Motherboard' && c.price <= mbPrice);
+    
+    if (compatibleMotherboards.length === 0) {
+        compatibleMotherboards = allComponents.filter(c => c.type === 'Motherboard');
+    }
+    
+    if (compatibleMotherboards.length > 0) {
+        compatibleMotherboards.sort((a, b) => a.price - b.price);
+        const midIndex = Math.floor(compatibleMotherboards.length * 0.6);
+        selected.motherboard = compatibleMotherboards[midIndex] || compatibleMotherboards[0];
+        lastSelectedMotherboard = selected.motherboard;
+    } else {
+        errors.push('Материнская плата');
+    }
+    
+    let cpuPrice = maxBudget * distribution.cpu;
+    let compatibleCPUs = allComponents.filter(c => 
+        c.type === 'CPU' && 
+        c.price <= cpuPrice
+    );
+    
+    if (lastSelectedMotherboard && lastSelectedMotherboard.socket) {
+        compatibleCPUs = compatibleCPUs.filter(cpu => 
+            cpu.socket === lastSelectedMotherboard.socket
+        );
+    }
+    
+    if (compatibleCPUs.length === 0) {
+        compatibleCPUs = allComponents.filter(c => c.type === 'CPU');
+        if (lastSelectedMotherboard && lastSelectedMotherboard.socket) {
+            compatibleCPUs = compatibleCPUs.filter(cpu => 
+                cpu.socket === lastSelectedMotherboard.socket
+            );
+        }
+    }
+    
+    if (compatibleCPUs.length > 0) {
+        compatibleCPUs.sort((a, b) => a.price - b.price);
+        const midIndex = Math.floor(compatibleCPUs.length * 0.7);
+        selected.cpu = compatibleCPUs[midIndex] || compatibleCPUs[0];
+        lastSelectedCPU = selected.cpu;
+    } else {
+        errors.push('Процессор');
+    }
+    
+    let ramPrice = maxBudget * distribution.ram;
+    let compatibleRAMs = allComponents.filter(c => 
+        c.type === 'RAM' && 
+        c.price <= ramPrice
+    );
+    
+    if (lastSelectedMotherboard && lastSelectedMotherboard.ram_type) {
+        compatibleRAMs = compatibleRAMs.filter(ram => 
+            ram.ram_type === lastSelectedMotherboard.ram_type
+        );
+    }
+    
+    if (compatibleRAMs.length === 0) {
+        compatibleRAMs = allComponents.filter(c => c.type === 'RAM');
+    }
+    
+    if (compatibleRAMs.length > 0) {
+        compatibleRAMs.sort((a, b) => a.price - b.price);
+        const midIndex = Math.floor(compatibleRAMs.length * 0.7);
+        selected.ram = compatibleRAMs[midIndex] || compatibleRAMs[0];
+    } else {
+        errors.push('Оперативная память');
+    }
+    
+    let gpuPrice = maxBudget * distribution.gpu;
+    let compatibleGPUs = allComponents.filter(c => 
+        c.type === 'GPU' && 
+        c.price <= gpuPrice
+    );
+    
+    if (compatibleGPUs.length === 0 && distribution.gpu > 0) {
+        compatibleGPUs = allComponents.filter(c => c.type === 'GPU');
+    }
+    
+    if (compatibleGPUs.length > 0 && distribution.gpu > 0) {
+        compatibleGPUs.sort((a, b) => b.price - a.price);
+        selected.gpu = compatibleGPUs[0];
+    } else if (distribution.gpu > 0) {
+        errors.push('Видеокарта');
+    }
+    
+    let ssdPrice = maxBudget * distribution.ssd;
+    let compatibleSSDs = allComponents.filter(c => 
+        c.type === 'SSD' && 
+        c.price <= ssdPrice
+    );
+    
+    if (compatibleSSDs.length === 0) {
+        compatibleSSDs = allComponents.filter(c => c.type === 'SSD');
+    }
+    
+    if (compatibleSSDs.length > 0) {
+        compatibleSSDs.sort((a, b) => a.price - a.price);
+        const midIndex = Math.floor(compatibleSSDs.length * 0.7);
+        selected.ssd = compatibleSSDs[midIndex] || compatibleSSDs[0];
+    } else {
+        errors.push('SSD накопитель');
+    }
+    
+    let requiredWatts = 100;
+    if (selected.cpu && selected.cpu.tdp) requiredWatts += selected.cpu.tdp;
+    if (selected.gpu && selected.gpu.power_wattage) requiredWatts += selected.gpu.power_wattage;
+    requiredWatts = Math.max(requiredWatts, 400);
+    
+    let psuPrice = maxBudget * distribution.psu;
+    let compatiblePSUs = allComponents.filter(c => 
+        c.type === 'PSU' && 
+        c.price <= psuPrice &&
+        c.power_wattage >= requiredWatts
+    );
+    
+    if (compatiblePSUs.length === 0) {
+        compatiblePSUs = allComponents.filter(c => c.type === 'PSU' && c.price <= psuPrice);
+    }
+    
+    if (compatiblePSUs.length === 0) {
+        compatiblePSUs = allComponents.filter(c => c.type === 'PSU');
+    }
+    
+    if (compatiblePSUs.length > 0) {
+        compatiblePSUs.sort((a, b) => a.price - a.price);
+        selected.psu = compatiblePSUs[0];
+    } else {
+        errors.push('Блок питания');
+    }
+    
+    let casePrice = maxBudget * distribution.case;
+    let compatibleCases = allComponents.filter(c => 
+        c.type === 'Case' && 
+        c.price <= casePrice
+    );
+    
+    if (lastSelectedMotherboard && lastSelectedMotherboard.form_factor) {
+        compatibleCases = compatibleCases.filter(c => 
+            c.form_factor === lastSelectedMotherboard.form_factor ||
+            (c.form_factor === 'Mid-Tower' && lastSelectedMotherboard.form_factor === 'ATX') ||
+            (c.form_factor === 'Micro-ATX' && lastSelectedMotherboard.form_factor === 'Micro-ATX')
+        );
+    }
+    
+    if (compatibleCases.length === 0) {
+        compatibleCases = allComponents.filter(c => c.type === 'Case');
+    }
+    
+    if (compatibleCases.length > 0) {
+        compatibleCases.sort((a, b) => a.price - a.price);
+        const midIndex = Math.floor(compatibleCases.length * 0.6);
+        selected.case = compatibleCases[midIndex] || compatibleCases[0];
+    }
+    
+    const compatibilityWarnings = [];
+    
+    if (selected.cpu && selected.motherboard && selected.cpu.socket !== selected.motherboard.socket) {
+        compatibilityWarnings.push(`⚠️ Сокет процессора (${selected.cpu.socket}) не совместим с материнской платой (${selected.motherboard.socket})`);
+    }
+    
+    if (selected.ram && selected.motherboard && selected.ram.ram_type !== selected.motherboard.ram_type) {
+        compatibilityWarnings.push(`⚠️ Тип памяти RAM (${selected.ram.ram_type}) не совместим с материнской платой (${selected.motherboard.ram_type})`);
+    }
+    
+    if (selected.psu && selected.psu.power_wattage && requiredWatts > selected.psu.power_wattage) {
+        compatibilityWarnings.push(`⚠️ Блок питания (${selected.psu.power_wattage}W) может быть недостаточен для данной сборки (требуется ~${requiredWatts}W)`);
+    }
+    
+    if (selected.case && selected.motherboard && selected.case.form_factor !== selected.motherboard.form_factor) {
+        if (!(selected.case.form_factor === 'Mid-Tower' && selected.motherboard.form_factor === 'ATX')) {
+            compatibilityWarnings.push(`⚠️ Корпус (${selected.case.form_factor}) может не подойти для материнской платы (${selected.motherboard.form_factor})`);
+        }
+    }
+    
+    chatState.collectedComponents = selected;
+    chatState.compatibilityWarnings = compatibilityWarnings;
+    
+    let totalCost = 0;
+    if (selected.cpu && selected.cpu.price) totalCost += Number(selected.cpu.price);
+    if (selected.gpu && selected.gpu.price) totalCost += Number(selected.gpu.price);
+    if (selected.ram && selected.ram.price) totalCost += Number(selected.ram.price);
+    if (selected.motherboard && selected.motherboard.price) totalCost += Number(selected.motherboard.price);
+    if (selected.ssd && selected.ssd.price) totalCost += Number(selected.ssd.price);
+    if (selected.psu && selected.psu.price) totalCost += Number(selected.psu.price);
+    if (selected.case && selected.case.price) totalCost += Number(selected.case.price);
+    console.log('Total cost:', totalCost, 'Type:', typeof totalCost);
+    
+    const purposeNames = {
+        school: '🏫 учёбы',
+        work: '💼 работы',
+        gaming: '🎮 игр',
+        editing: '🎬 монтажа'
+    };
+    
+    let resultMessage = `
+        <strong>✅ Сборка готова!</strong><br><br>
+        <strong>🎯 Цель:</strong> ${purposeNames[purpose]}<br>
+        <strong>💰 Бюджет:</strong> ${Number(maxBudget).toLocaleString('ru-RU')} ₽<br>
+        <strong>💵 Итоговая цена:</strong> ${totalCost.toLocaleString('ru-RU')} ₽<br><br>
+        <strong>📦 Подобранные компоненты:</strong><br>
+        ${selected.motherboard ? `🔌 <b>Материнская плата:</b> ${selected.motherboard.name} — ${Number(selected.motherboard.price).toLocaleString('ru-RU')} ₽<br>` : ''}
+        ${selected.cpu ? `🖥️ <b>Процессор:</b> ${selected.cpu.name} — ${Number(selected.cpu.price).toLocaleString('ru-RU')} ₽<br>` : ''}
+        ${selected.ram ? `💾 <b>Оперативная память:</b> ${selected.ram.name} — ${Number(selected.ram.price).toLocaleString('ru-RU')} ₽<br>` : ''}
+        ${selected.gpu ? `🎮 <b>Видеокарта:</b> ${selected.gpu.name} — ${Number(selected.gpu.price).toLocaleString('ru-RU')} ₽<br>` : ''}
+        ${selected.ssd ? `💽 <b>SSD накопитель:</b> ${selected.ssd.name} — ${Number(selected.ssd.price).toLocaleString('ru-RU')} ₽<br>` : ''}
+        ${selected.psu ? `⚡ <b>Блок питания:</b> ${selected.psu.name} — ${Number(selected.psu.price).toLocaleString('ru-RU')} ₽<br>` : ''}
+        ${selected.case ? `📦 <b>Корпус:</b> ${selected.case.name} — ${Number(selected.case.price).toLocaleString('ru-RU')} ₽<br>` : ''}
+    `;
+    
+    if (compatibilityWarnings.length > 0) {
+        resultMessage += `<br><span style="color: #ff9800;">⚠️ <strong>Предупреждения совместимости:</strong><br>${compatibilityWarnings.map(w => `• ${w}`).join('<br>')}</span>`;
+    }
+    
+    if (errors.length > 0) {
+        resultMessage += `<br><span style="color: #ff6b6b;">❌ Не удалось подобрать: ${errors.join(', ')}</span>`;
+    }
+    
+    resultMessage += `<br><br>Хотите применить эту сборку?<br>Напишите <b>"да"</b> или <b>"нет"</b>`;
+    
+    addMessageToChat('bot', resultMessage);
+    chatState.step = 'confirming';
+}
+
+async function handleConfirmation(message) {
+    const lowerMsg = message.toLowerCase();
+    
+    if (lowerMsg.includes('да') || lowerMsg.includes('давай') || lowerMsg.includes('применить') || lowerMsg.includes('ок')) {
+        const build = chatState.collectedComponents;
+        if (build) {
+            for (const [key, component] of Object.entries(build)) {
+                if (component) {
+                    currentBuild[key] = component;
+                }
+            }
+            localStorage.setItem('tempBuild', JSON.stringify(currentBuild));
+            updateBuildDisplay();
+            
+            addMessageToChat('bot', '✅ Отлично! Сборка применена. Вы можете увидеть её в левой панели "Ваша сборка" и при необходимости отредактировать компоненты вручную.');
+            
+            addMessageToChat('bot', '🔧 Совет: переключитесь на вкладку "Самостоятельно", чтобы заменить отдельные компоненты, если нужно.');
+            
+            chatState.step = 'completed';
+        } else {
+            addMessageToChat('bot', '❌ Что-то пошло не так. Давайте начнём заново? Напишите "да"');
+            resetChat();
+        }
+    } else if (lowerMsg.includes('нет') || lowerMsg.includes('не надо') || lowerMsg.includes('отмена')) {
+        addMessageToChat('bot', 'Хорошо, давайте попробуем подобрать другую сборку. Напишите, для каких целей вам нужен компьютер и какой бюджет.');
+        chatState.step = 'waiting';
+        chatState.purpose = null;
+        chatState.budget = null;
+        chatState.collectedComponents = null;
+    } else {
+        addMessageToChat('bot', 'Не понял. Применить сборку? Напишите <b>"да"</b> или <b>"нет"</b>');
+    }
+}
+
+function resetChat() {
+    chatState = {
+        step: 'waiting',
+        purpose: null,
+        purposeText: null,
+        budget: null,
+        budgetValue: null,
+        collectedComponents: null
+    };
+    
+    const messagesDiv = document.getElementById('chatMessages');
+    messagesDiv.innerHTML = `
+        <div class="message bot">
+            <div class="message-avatar">🤖</div>
+            <div class="message-content">
+                Добрый день! 👋<br><br>
+                Я помогу вам собрать компьютер под ваши задачи и бюджет.<br><br>
+                <strong>Просто напишите:</strong><br>
+                • <b>для игр на 80000 рублей</b><br>
+                • <b>компьютер для работы до 100 тысяч</b><br>
+                • <b>бюджетный для учёбы</b><br>
+                • <b>мощный для монтажа около 150000</b>
+            </div>
+        </div>
+    `;
+    
+    const resultDiv = document.getElementById('chatBuildResult');
+    if (resultDiv) resultDiv.style.display = 'none';
+}
+        
+       function applyRecommendedBuild(category) {
+    const recommendations = {
+        school: { cpu: 'Intel Core i3', gpu: 'GTX 1650', ram: 'DDR4' },
+        work: { cpu: 'Intel Core i7', gpu: 'RTX 3060', ram: 'DDR4' },
+        gaming: { cpu: 'Ryzen 7', gpu: 'RTX 4070', ram: 'DDR5' },
+        editing: { cpu: 'Intel Core i9', gpu: 'RTX 4080', ram: 'DDR5' }
+    };
+    
+    const rec = recommendations[category];
+    if (!rec) return;
+    
+    const cpuComp = components.find(c => c.name.includes(rec.cpu) && c.type === 'CPU');
+    const gpuComp = components.find(c => c.name.includes(rec.gpu) && c.type === 'GPU');
+    const ramComp = components.find(c => c.specs.includes(rec.ram) && c.type === 'RAM');
+    
+    if (cpuComp) currentBuild.cpu = cpuComp;
+    if (gpuComp) currentBuild.gpu = gpuComp;
+    if (ramComp) currentBuild.ram = ramComp;
+    
+    localStorage.setItem('tempBuild', JSON.stringify(currentBuild));
+    updateBuildDisplay();
+    setBuildMode('manual');
+    alert('Рекомендуемая сборка применена!');
+}
+
+async function generateSmartBuild() {
+    const purpose = document.getElementById('purpose').value;
+    const budget = document.getElementById('budget').value;
+    const needGpu = document.getElementById('needGpu').value;
+    
+    const resultDiv = document.getElementById('smartResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div class="loading">⏳ Подбираем компоненты...</div>';
+    
+    let maxBudget = 0;
+    switch(budget) {
+        case 'budget': maxBudget = 40000; break;
+        case 'medium': maxBudget = 80000; break;
+        case 'high': maxBudget = 150000; break;
+        case 'ultra': maxBudget = 300000; break;
+        default: maxBudget = 80000;
+    }
+    
+    let budgetDistribution = {};
+    if (purpose === 'school') {
+        budgetDistribution = { cpu: 0.3, ram: 0.15, ssd: 0.1, motherboard: 0.15, psu: 0.1, case: 0.1, gpu: 0.1 };
+    } else if (purpose === 'work') {
+        budgetDistribution = { cpu: 0.35, ram: 0.15, ssd: 0.1, motherboard: 0.15, psu: 0.1, case: 0.05, gpu: 0.1 };
+    } else if (purpose === 'gaming') {
+        budgetDistribution = { cpu: 0.25, gpu: 0.4, ram: 0.1, ssd: 0.05, motherboard: 0.1, psu: 0.05, case: 0.05 };
+    } else {
+        budgetDistribution = { cpu: 0.3, gpu: 0.3, ram: 0.15, ssd: 0.05, motherboard: 0.1, psu: 0.05, case: 0.05 };
+    }
+    
+    let actualNeedGpu = needGpu;
+    if (needGpu === 'auto') {
+        actualNeedGpu = (purpose === 'gaming' || purpose === 'editing') ? 'yes' : 'no';
+    }
+    
+    if (actualNeedGpu === 'no') {
+        budgetDistribution.gpu = 0;
+        budgetDistribution.cpu += 0.2;
+        budgetDistribution.ram += 0.1;
+    }
+
+    const selectedComponents = {
+        cpu: null,
+        gpu: null,
+        ram: null,
+        motherboard: null,
+        ssd: null,
+        psu: null,
+        case: null
+    };
+    
+    const errors = [];
+    
+    const allComponents = [...components];
+    
+    let cpuPrice = maxBudget * budgetDistribution.cpu;
+    let cpus = allComponents.filter(c => 
+        c.type === 'CPU' && c.price <= cpuPrice
+    );
+    
+    if (cpus.length === 0) {
+        cpus = allComponents.filter(c => c.type === 'CPU');
+    }
+    
+    if (cpus.length > 0) {
+        cpus.sort((a, b) => b.price - a.price);
+        selectedComponents.cpu = cpus[0];
+    } else {
+        errors.push('Процессор');
+    }
+    
+    if (actualNeedGpu === 'yes') {
+        let gpuPrice = maxBudget * budgetDistribution.gpu;
+        let gpus = allComponents.filter(c => 
+            c.type === 'GPU' && c.price <= gpuPrice
+        );
+        
+        if (gpus.length === 0) {
+            gpus = allComponents.filter(c => c.type === 'GPU');
+        }
+        
+        if (gpus.length > 0) {
+            gpus.sort((a, b) => b.price - a.price);
+            selectedComponents.gpu = gpus[0];
+        } else {
+            errors.push('Видеокарта');
+        }
+    }
+    
+    let ramPrice = maxBudget * budgetDistribution.ram;
+    let rams = allComponents.filter(c => 
+        c.type === 'RAM' && c.price <= ramPrice
+    );
+    
+    if (rams.length === 0) {
+        rams = allComponents.filter(c => c.type === 'RAM');
+    }
+    
+    if (rams.length > 0) {
+        rams.sort((a, b) => b.price - a.price);
+        selectedComponents.ram = rams[0];
+    } else {
+        errors.push('Оперативная память');
+    }
+    
+    let mbPrice = maxBudget * budgetDistribution.motherboard;
+    let mbs = allComponents.filter(c => 
+        c.type === 'Motherboard' && c.price <= mbPrice
+    );
+    
+    if (mbs.length === 0) {
+        mbs = allComponents.filter(c => c.type === 'Motherboard');
+    }
+    
+    if (mbs.length > 0) {
+        mbs.sort((a, b) => b.price - a.price);
+        selectedComponents.motherboard = mbs[0];
+    } else {
+        errors.push('Материнская плата');
+    }
+    
+    let ssdPrice = maxBudget * budgetDistribution.ssd;
+    let ssds = allComponents.filter(c => 
+        c.type === 'SSD' && c.price <= ssdPrice
+    );
+    
+    if (ssds.length === 0) {
+        ssds = allComponents.filter(c => c.type === 'SSD');
+    }
+    
+    if (ssds.length > 0) {
+        ssds.sort((a, b) => b.price - a.price);
+        selectedComponents.ssd = ssds[0];
+    } else {
+        errors.push('Накопитель SSD');
+    }
+    
+    let psuPrice = maxBudget * budgetDistribution.psu;
+    let psus = allComponents.filter(c => 
+        c.type === 'PSU' && c.price <= psuPrice
+    );
+    
+    if (psus.length === 0) {
+        psus = allComponents.filter(c => c.type === 'PSU');
+    }
+    
+    if (psus.length > 0) {
+        psus.sort((a, b) => b.price - a.price);
+        selectedComponents.psu = psus[0];
+    } else {
+        errors.push('Блок питания');
+    }
+    
+    let casePrice = maxBudget * budgetDistribution.case;
+    let cases = allComponents.filter(c => 
+        c.type === 'Case' && c.price <= casePrice
+    );
+    
+    if (cases.length === 0) {
+        cases = allComponents.filter(c => c.type === 'Case');
+    }
+    
+    if (cases.length > 0) {
+        cases.sort((a, b) => b.price - a.price);
+        selectedComponents.case = cases[0];
+    } else {
+        errors.push('Корпус');
+    }
+    
+    const totalPrice = Number(Object.values(selected).reduce((sum, comp) => sum + (comp?.price || 0), 0));
+    
+    const purposeNames = {
+        school: '🏫 Школа/Офис',
+        work: '💼 Работа',
+        gaming: '🎮 Игры',
+        editing: '🎬 Видеомонтаж'
+    };
+    
+    const budgetNames = {
+        budget: 'до 40 000 ₽',
+        medium: '40 000 - 80 000 ₽',
+        high: '80 000 - 150 000 ₽',
+        ultra: 'от 150 000 ₽'
+    };
+    
+    function getComponentIcon(type) {
+        const icons = {
+            'CPU': '🖥️',
+            'GPU': '🎮',
+            'RAM': '💾',
+            'Motherboard': '🔌',
+            'SSD': '💽',
+            'PSU': '⚡',
+            'Case': '📦'
+        };
+        return icons[type] || '🔧';
+    }
+    
+    resultDiv.innerHTML = `
+        <div class="smart-result-content">
+            <h4>🤖 Ваша персональная сборка</h4>
+            
+            <div class="smart-summary">
+                <div class="smart-badge">
+                    <span>🎯 Цель: ${purposeNames[purpose]}</span>
+                    <span>💰 Бюджет: ${budgetNames[budget]}</span>
+                    <span>💵 Итого: ${totalPrice.toLocaleString('ru-RU')} ₽</span>
+                </div>
+            </div>
+            
+            <div class="smart-components-list">
+                ${selectedComponents.cpu ? `
+                    <div class="smart-component">
+                        <span class="smart-component-icon">🖥️</span>
+                        <span class="smart-component-name">${selectedComponents.cpu.name}</span>
+                        <span class="smart-component-price">${selectedComponents.cpu.price.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                ` : ''}
+                ${selectedComponents.gpu ? `
+                    <div class="smart-component">
+                        <span class="smart-component-icon">🎮</span>
+                        <span class="smart-component-name">${selectedComponents.gpu.name}</span>
+                        <span class="smart-component-price">${selectedComponents.gpu.price.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                ` : ''}
+                ${selectedComponents.ram ? `
+                    <div class="smart-component">
+                        <span class="smart-component-icon">💾</span>
+                        <span class="smart-component-name">${selectedComponents.ram.name}</span>
+                        <span class="smart-component-price">${selectedComponents.ram.price.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                ` : ''}
+                ${selectedComponents.motherboard ? `
+                    <div class="smart-component">
+                        <span class="smart-component-icon">🔌</span>
+                        <span class="smart-component-name">${selectedComponents.motherboard.name}</span>
+                        <span class="smart-component-price">${selectedComponents.motherboard.price.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                ` : ''}
+                ${selectedComponents.ssd ? `
+                    <div class="smart-component">
+                        <span class="smart-component-icon">💽</span>
+                        <span class="smart-component-name">${selectedComponents.ssd.name}</span>
+                        <span class="smart-component-price">${selectedComponents.ssd.price.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                ` : ''}
+                ${selectedComponents.psu ? `
+                    <div class="smart-component">
+                        <span class="smart-component-icon">⚡</span>
+                        <span class="smart-component-name">${selectedComponents.psu.name}</span>
+                        <span class="smart-component-price">${selectedComponents.psu.price.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                ` : ''}
+                ${selectedComponents.case ? `
+                    <div class="smart-component">
+                        <span class="smart-component-icon">📦</span>
+                        <span class="smart-component-name">${selectedComponents.case.name}</span>
+                        <span class="smart-component-price">${selectedComponents.case.price.toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                ` : ''}
+            </div>
+            
+            ${errors.length > 0 ? `
+                <div class="smart-warning">
+                    ⚠️ Не удалось подобрать: ${errors.join(', ')}
+                </div>
+            ` : ''}
+            
+            <div class="smart-actions">
+                <button onclick='applySmartBuild(${JSON.stringify(selectedComponents)})' class="apply-smart-btn">
+                    ✅ Применить эту сборку
+                </button>
+                <button onclick="regenerateSmartBuild()" class="regenerate-btn">
+                    🔄 Подобрать заново
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function applySmartBuild(components) {
+    for (const [key, component] of Object.entries(components)) {
+        if (component && component !== null) {
+            currentBuild[key] = component;
+        }
+    }
+    localStorage.setItem('tempBuild', JSON.stringify(currentBuild));
+    updateBuildDisplay();
+    setBuildMode('manual');
+    
+    alert('✅ Сборка применена! Вы можете редактировать её в режиме "Самостоятельно"');
+}
+
+function regenerateSmartBuild() {
+    generateSmartBuild();
+}
+
+        
+async function saveCurrentBuild() {
+    if (!currentUser) {
+        customConfirm('Войдите в аккаунт, чтобы сохранить сборку', () => {
+            window.location.href = 'auth.html';
+        });
+        return;
+    }
+    
+    const hasComponents = Object.values(currentBuild).some(comp => comp !== null);
+    if (!hasComponents) {
+        alert('Добавьте хотя бы один компонент в сборку');
+        return;
+    }
+    
+    const buildName = prompt('Введите название сборки:', 'Моя сборка');
+    if (!buildName) return;
+    
+    let category = 'general';
+    if (currentBuild.gpu && currentBuild.gpu.price > 50000) category = 'gaming';
+    else if (currentBuild.cpu && currentBuild.cpu.price > 30000) category = 'work';
+    else if (currentBuild.gpu) category = 'gaming';
+    else if (currentBuild.cpu) category = 'work';
+    else category = 'school';
+    
+    const totalPrice = Object.values(currentBuild).reduce((sum, comp) => sum + (comp?.price || 0), 0);
+    
+    const buildData = {
+        name: buildName,
+        components: currentBuild,
+        total_price: totalPrice,
+        category: category
+    };
+    
+    const result = await saveBuild(buildData);
+    if (result) {
+        alert('✅ Сборка успешно сохранена!');
+        localStorage.removeItem('tempBuild');
+        currentBuild = { cpu: null, gpu: null, ram: null, motherboard: null, ssd: null, psu: null, case: null };
+        updateBuildDisplay();
+    } else {
+        alert('❌ Ошибка при сохранении сборки. Попробуйте позже.');
+    }
+}
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'none';
+}
+
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'flex';
+}
+
+    </script>
+</body>
+</html>

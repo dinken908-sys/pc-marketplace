@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа - PC Marketplace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+    <div class="header-content">
+        <div class="header-left">
+            <div class="burger-menu" id="burgerMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <h1>PC Marketplace</h1>
+        </div>
+        <div class="header-right"></div>
+    </div>
+    
+    <nav class="desktop-nav">
+        <a href="index.html" class="nav-btn">🛒 Магазин</a>
+        <a href="builder.html" class="nav-btn">🔧 Сборка ПК</a>
+        <a href="community.html" class="nav-btn">👥 Сборки пользователей</a>
+        <a href="cart.html" class="nav-btn">🛒 Корзина</a>
+        <a href="admin.html" class="nav-btn" id="adminNavBtn" style="display: none;">👑 Админ панель</a>
+        <span class="user-nav">
+            <a href="profile.html" class="nav-btn" id="profileBtn" style="display: none;">👤 Профиль</a>
+            <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;">🚪 Выйти</button>
+            <a href="auth.html" class="nav-btn" id="authBtn">🔐 Вход</a>
+        </span>
+    </nav>
+</header>
+
+<div class="mobile-nav" id="mobileNav">
+    <a href="index.html">🛒 Магазин</a>
+    <a href="builder.html">🔧 Сборка ПК</a>
+    <a href="community.html">👥 Сборки пользователей</a>
+    <a href="cart.html" class="active">🛒 Корзина</a>
+    <a href="admin.html" id="mobileAdminNav" style="display: none;">👑 Админ панель</a>
+    <a href="profile.html" id="mobileProfileBtn" style="display: none;">👤 Профиль</a>
+    <button id="mobileLogoutBtn" style="display: none;" onclick="logoutFromMobile()">🚪 Выйти</button>
+    <a href="auth.html" id="mobileAuthBtn">🔐 Вход</a>
+</div>
+<div class="mobile-overlay" id="mobileOverlay"></div>
+    
+    <main>
+        <div class="checkout-container" id="checkoutContent">
+            <div class="loading">⏳ Загрузка...</div>
+        </div>
+    </main>
+    
+    <script src="script.js"></script>
+    <script>
+        let cartItems = [];
+        let totalPrice = 0;
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadComponents();
+            await updateAuthUI();
+            
+            if (!currentUser) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            const savedItems = localStorage.getItem('checkoutItems');
+            if (savedItems) {
+                cartItems = JSON.parse(savedItems);
+                totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                displayCheckout();
+            } else {
+                window.location.href = 'cart.html';
+            }
+        });
+        
+        function displayCheckout() {
+            const container = document.getElementById('checkoutContent');
+            
+            container.innerHTML = `
+                <h2>📝 Оформление заказа</h2>
+                <div class="checkout-grid">
+                    <div>
+                        <div class="checkout-section">
+                            <div class="section-title">📦 Ваш заказ</div>
+                            <div class="order-summary">
+                                ${cartItems.map(item => `
+                                    <div class="order-item">
+                                        <span>${escapeHtml(item.item_data?.name || 'Товар')} x${item.quantity}</span>
+                                        <span>${(item.price * item.quantity).toLocaleString('ru-RU')} ₽</span>
+                                    </div>
+                                `).join('')}
+                                <div class="order-total">
+                                    <span>Итого к оплате:</span>
+                                    <span>${totalPrice.toLocaleString('ru-RU')} ₽</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="checkout-section">
+                            <div class="section-title">🚚 Доставка</div>
+                            <form id="deliveryForm">
+                                <div class="form-group">
+                                    <label>ФИО получателя *</label>
+                                    <input type="text" id="fullName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Телефон *</label>
+                                    <input type="tel" id="phone" placeholder="+7 (999) 123-45-67" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Адрес доставки *</label>
+                                    <textarea id="address" rows="3" placeholder="Город, улица, дом, квартира" required></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="checkout-section">
+                            <div class="section-title">💳 Оплата</div>
+                            <div class="credit-card" id="creditCard">
+                                <div class="card-chip"></div>
+                                <div class="card-number" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+                                <div class="card-details">
+                                    <div class="card-expiry">
+                                        <div class="card-label">Срок действия</div>
+                                        <div class="card-value" id="cardExpiryDisplay">••/••</div>
+                                    </div>
+                                    <div class="card-cvv">
+                                        <div class="card-label">CVV</div>
+                                        <div class="card-value" id="cardCvvDisplay">•••</div>
+                                    </div>
+                                </div>
+                                <div class="card-brand" id="cardBrand">💳</div>
+                            </div>
+                            
+                            <form id="paymentForm">
+                                <div class="form-group">
+                                    <label>Номер карты</label>
+                                    <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Срок (ММ/ГГ)</label>
+                                        <input type="text" id="cardExpiry" placeholder="ММ/ГГ" maxlength="5" oninput="formatExpiry(this)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>CVV</label>
+                                        <input type="password" id="cardCvv" placeholder="•••" maxlength="3" oninput="updateCardDisplay()">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Владелец карты</label>
+                                    <input type="text" id="cardName" placeholder="NAME SURNAME">
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <button class="submit-order" onclick="submitOrder()">✅ Подтвердить заказ</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('cardNumber').addEventListener('input', updateCardDisplay);
+            document.getElementById('cardExpiry').addEventListener('input', updateCardDisplay);
+            document.getElementById('cardCvv').addEventListener('input', updateCardDisplay);
+        }
+        
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\D/g, '');
+            value = value.replace(/(\d{4})/g, '$1 ').trim();
+            input.value = value.substring(0, 19);
+            updateCardDisplay();
+        }
+        
+        function formatExpiry(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            input.value = value;
+            updateCardDisplay();
+        }
+        
+        function updateCardDisplay() {
+            const cardNumber = document.getElementById('cardNumber')?.value || '';
+            const maskedNumber = cardNumber ? '•••• •••• •••• ' + cardNumber.slice(-4) : '•••• •••• •••• ••••';
+            document.getElementById('cardNumberDisplay').textContent = maskedNumber || '•••• •••• •••• ••••';
+            
+            const expiry = document.getElementById('cardExpiry')?.value || '';
+            document.getElementById('cardExpiryDisplay').textContent = expiry || '••/••';
+            
+            const cvv = document.getElementById('cardCvv')?.value || '';
+            document.getElementById('cardCvvDisplay').textContent = cvv ? '•••' : '•••';
+            
+            const firstDigit = cardNumber.replace(/\s/g, '')[0];
+            let brand = '💳';
+            if (firstDigit === '4') brand = '💳 Visa';
+            else if (firstDigit === '5') brand = '💳 MasterCard';
+            else if (firstDigit === '3') brand = '💳 American Express';
+            else if (firstDigit === '2') brand = '💳 Mir';
+            document.getElementById('cardBrand').textContent = brand;
+        }
+        
+        async function submitOrder() {
+            const fullName = document.getElementById('fullName').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const cardNumber = document.getElementById('cardNumber').value;
+            const cardExpiry = document.getElementById('cardExpiry').value;
+            const cardCvv = document.getElementById('cardCvv').value;
+            const cardName = document.getElementById('cardName').value;
+            
+            if (!fullName || !phone || !address) {
+                alert('Пожалуйста, заполните все поля доставки');
+                return;
+            }
+            
+            if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
+                alert('Пожалуйста, заполните данные карты');
+                return;
+            }
+            
+            alert('💳 Обработка платежа...');
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const orderData = {
+                items: cartItems,
+                total_price: totalPrice,
+                delivery_address: address,
+                customer_name: fullName,
+                customer_phone: phone
+            };
+            
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'user-id': currentUser.id },
+                    body: JSON.stringify(orderData)
+                });
+                
+                if (response.ok) {
+                    const order = await response.json();
+                    localStorage.removeItem('checkoutItems');
+                    alert(`✅ Заказ успешно оформлен!\nНомер заказа: ${order.order_number}\nСпасибо за покупку!`);
+                    window.location.href = 'profile.html';
+                } else {
+                    alert('❌ Ошибка при оформлении заказа');
+                }
+            } catch (error) {
+                alert('❌ Ошибка: ' + error.message);
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

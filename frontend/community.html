@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Marketplace - Сборки пользователей</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <div class="header-left">
+            <div class="burger-menu" id="burgerMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <h1>PC Marketplace</h1>
+        </div>
+        <div class="header-right"></div>
+    </div>
+    
+    <nav class="desktop-nav">
+        <a href="index.html" class="nav-btn">🛒 Магазин</a>
+        <a href="builder.html" class="nav-btn">🔧 Сборка ПК</a>
+        <a href="community.html" class="nav-btn active">👥 Сборки пользователей</a>
+        <a href="cart.html" class="nav-btn">🛒 Корзина</a>
+        <a href="admin.html" class="nav-btn" id="adminNavBtn" style="display: none;">👑 Админ панель</a>
+        <span class="user-nav">
+            <a href="profile.html" class="nav-btn" id="profileBtn" style="display: none;">👤 Профиль</a>
+            <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;">🚪 Выйти</button>
+            <a href="auth.html" class="nav-btn" id="authBtn">🔐 Вход</a>
+        </span>
+    </nav>
+</header>
+
+<!-- Мобильная навигация -->
+<div class="mobile-nav" id="mobileNav">
+    <a href="index.html">🛒 Магазин</a>
+    <a href="builder.html">🔧 Сборка ПК</a>
+    <a href="community.html" class="active">👥 Сборки пользователей</a>
+    <a href="cart.html">🛒 Корзина</a>
+    <a href="admin.html" id="mobileAdminNav" style="display: none;">👑 Админ панель</a>
+    <a href="profile.html" id="mobileProfileBtn" style="display: none;">👤 Профиль</a>
+    <button id="mobileLogoutBtn" style="display: none;" onclick="logoutFromMobile()">🚪 Выйти</button>
+    <a href="auth.html" id="mobileAuthBtn">🔐 Вход</a>
+</div>
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <main>
+        <h2>👥 Сборки сообщества</h2>
+        
+        <div class="community-filters">
+            <select id="categoryFilter" onchange="filterBuilds()">
+                <option value="all">Все сборки</option>
+                <option value="gaming">🎮 Игровые</option>
+                <option value="work">💼 Рабочие</option>
+                <option value="editing">🎬 Для монтажа</option>
+                <option value="school">🏫 Для школы</option>
+            </select>
+            <select id="sortBy" onchange="filterBuilds()">
+                <option value="date">📅 По дате (новые)</option>
+                <option value="price_asc">💰 По цене (дешевле)</option>
+                <option value="price_desc">💰 По цене (дороже)</option>
+                <option value="likes">❤️ По популярности</option>
+            </select>
+            <button onclick="refreshBuilds()" class="refresh-btn">🔄 Обновить</button>
+        </div>
+        
+        <div id="buildsList" class="builds-list">
+            <div class="loading">⏳ Загрузка сборок...</div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>PC Marketplace</h3>
+                <p>Интернет-площадка для покупок товаров и виртуальной сборки ПК с проверкой совместимости компонентов. Умный подбор под ваш бюджет и задачи.</p>
+            </div>         
+            <div class="footer-section">
+                <h3>Навигация</h3>
+                <ul>
+                    <li><a href="index.html">🛒 Магазин</a></li>
+                    <li><a href="builder.html">🔧 Сборка ПК</a></li>
+                    <li><a href="community.html">👥 Сборки пользователей</a></li>
+                    <li><a href="cart.html">🛒 Корзина</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 PC Marketplace. Все права защищены. Данный сайт носит информационный характер.</p>
+        </div>
+    </footer> 
+    <script src="script.js"></script>
+    <script>
+        let allBuilds = [];
+        let userLikes = {};
+        let isAdmin = false;
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadComponents();
+            await updateAuthUI();
+            await updateHeaderAvatar();
+            
+            if (currentUser) {
+                isAdmin = await isAdminUser(currentUser.id);
+            }
+            
+            await loadAllBuilds();
+            initMobileMenu();
+        });
+        function initMobileMenu() {
+            const burger = document.getElementById('burgerMenu');
+            const mobileNav = document.getElementById('mobileNav');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            if (!burger) return;
+            
+            function toggleMenu() {
+                burger.classList.toggle('active');
+                mobileNav.classList.toggle('active');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+            }
+            
+            burger.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+            
+            mobileNav.querySelectorAll('a, button').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (mobileNav.classList.contains('active')) toggleMenu();
+                });
+            });
+        }
+        
+        function logoutFromMobile() {
+            if (confirm('Выйти из аккаунта?')) {
+                localStorage.removeItem('currentUser');
+                window.location.reload();
+            }
+        }
+        
+        async function updateAuthUI() {
+            const userStr = localStorage.getItem('currentUser');
+            const authBtn = document.getElementById('authBtn');
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const adminNavBtn = document.getElementById('adminNavBtn');
+            
+            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+            const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+            const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+            const mobileAdminNav = document.getElementById('mobileAdminNav');
+            
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                if (authBtn) authBtn.style.display = 'none';
+                if (profileBtn) profileBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.textContent = `👤 ${currentUser.username}`;
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'none';
+                if (mobileProfileBtn) {
+                    mobileProfileBtn.style.display = 'block';
+                    mobileProfileBtn.textContent = `👤 ${currentUser.username}`;
+                }
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
+                
+                const isAdmin = await isAdminUser(currentUser.id);
+                if (adminNavBtn) adminNavBtn.style.display = isAdmin ? 'inline-block' : 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = isAdmin ? 'block' : 'none';
+            } else {
+                if (authBtn) authBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (adminNavBtn) adminNavBtn.style.display = 'none';
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'block';
+                if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = 'none';
+            }
+        }
+        
+        async function loadAllBuilds() {
+            try {
+                const response = await fetch('/api/builds');
+                if (!response.ok) throw new Error('Ошибка загрузки');
+                allBuilds = await response.json();
+                console.log(`Загружено ${allBuilds.length} сборок`);
+                
+                if (currentUser) {
+                    await loadLikeStatuses();
+                }
+                
+                displayBuilds(allBuilds);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                document.getElementById('buildsList').innerHTML = 
+                    '<div class="error">❌ Ошибка загрузки сборок. Попробуйте позже.</div>';
+            }
+        }
+        
+        async function loadLikeStatuses() {
+            for (const build of allBuilds) {
+                try {
+                    const response = await fetch(`/api/builds/${build.id}/like-status`, {
+                        headers: { 'user-id': currentUser.id }
+                    });
+                    const status = await response.json();
+                    userLikes[build.id] = status.liked;
+                    build.likes = status.likes;
+                } catch (error) {
+                    console.error('Error loading like status:', error);
+                }
+            }
+        }
+        
+        function displayBuilds(builds) {
+            const container = document.getElementById('buildsList');
+            
+            if (!builds || builds.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>😕 Пока нет ни одной сборки</p>
+                        <p>Станьте первым! Перейдите в раздел <a href="builder.html">"Сборка ПК"</a></p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = builds.map(build => {
+                const componentsCount = Object.values(build.components || {}).filter(c => c).length;
+                const isOwner = currentUser && build.user_id === currentUser.id;
+                const isLiked = userLikes[build.id] || false;
+                const likeCount = build.likes || 0;
+                
+                const showDeleteBtn = (currentUser && (isAdmin || isOwner));
+                
+                return `
+                    <div class="build-card" data-build-id="${build.id}">
+                        <div class="build-header">
+                            <div>
+                                <h3 class="build-title">${escapeHtml(build.name)}</h3>
+                                <span class="build-category ${build.category || 'general'}">
+                                    ${getCategoryIcon(build.category)} ${getCategoryName(build.category)}
+                                </span>
+                            </div>
+                            <div class="build-author">
+                                👤 ${escapeHtml(build.username || 'Аноним')}
+                                ${isAdmin && !isOwner ? '<span class="admin-badge">👑 Админ</span>' : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="build-price">💰 ${(build.total_price || 0).toLocaleString('ru-RU')} ₽</div>
+                        
+                        <div class="build-components">
+                            <strong>📦 Компоненты (${componentsCount}):</strong>
+                            <ul>
+                                ${build.components?.cpu ? `<li>🖥️ CPU: ${escapeHtml(build.components.cpu.name)}</li>` : ''}
+                                ${build.components?.gpu ? `<li>🎮 GPU: ${escapeHtml(build.components.gpu.name)}</li>` : ''}
+                                ${build.components?.ram ? `<li>💾 RAM: ${escapeHtml(build.components.ram.name)}</li>` : ''}
+                                ${build.components?.motherboard ? `<li>🔌 Материнская плата: ${escapeHtml(build.components.motherboard.name)}</li>` : ''}
+                                ${build.components?.ssd ? `<li>💽 SSD: ${escapeHtml(build.components.ssd.name)}</li>` : ''}
+                                ${build.components?.psu ? `<li>⚡ Блок питания: ${escapeHtml(build.components.psu.name)}</li>` : ''}
+                                ${build.components?.case ? `<li>📦 Корпус: ${escapeHtml(build.components.case.name)}</li>` : ''}
+                            </ul>
+                        </div>
+                        
+                        <div class="build-actions">
+                            <button onclick="toggleLike(${build.id})" class="like-btn ${isLiked ? 'liked' : ''}">
+                                ${isLiked ? '❤️' : '🤍'} ${likeCount}
+                            </button>
+                            <button onclick="addBuildToCart(${build.id})" class="cart-btn">🛒 В корзину</button>
+                            <button onclick="useThisBuild(${build.id})" class="use-btn">
+                                📋 Использовать
+                            </button>
+                            ${showDeleteBtn ? `
+                                <button onclick="deleteBuild(${build.id}, ${isAdmin})" class="delete-btn">
+                                    🗑️ Удалить
+                                </button>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="build-date">
+                            📅 ${new Date(build.created_at || build.date).toLocaleDateString('ru-RU')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+async function addBuildToCart(buildId) {
+    if (!currentUser) {
+        customConfirm('Войдите в аккаунт', () => {
+            window.location.href = 'auth.html';
+        });
+        return;
+    }
+    
+    const build = allBuilds.find(b => b.id === buildId);
+    if (!build) return;
+    
+    const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'user-id': currentUser.id },
+        body: JSON.stringify({
+            item_type: 'build',
+            item_id: build.id,
+            item_data: {
+                id: build.id,
+                name: build.name,
+                description: `Сборка от ${build.username}`,
+                category: build.category,
+                components: build.components,
+                total_price: build.total_price,
+                image: build.components?.gpu?.image || build.components?.cpu?.image || 'https://placehold.co/80x80/667eea/white?text=PC'
+            },
+            price: build.total_price,
+            quantity: 1
+        })
+    });
+    
+    if (response.ok) {
+        alert('✅ Сборка добавлена в корзину!');
+    } else {
+        alert('❌ Ошибка');
+    }
+}
+        async function toggleLike(buildId) {
+            if (!currentUser) {
+                customConfirm('Войдите в аккаунт, чтобы поставить лайк', () => {
+                    window.location.href = 'auth.html';
+                });
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/builds/${buildId}/like`, {
+                    method: 'POST',
+                    headers: { 'user-id': currentUser.id }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    userLikes[buildId] = result.action === 'liked';
+                    const buildIndex = allBuilds.findIndex(b => b.id === buildId);
+                    if (buildIndex !== -1) {
+                        allBuilds[buildIndex].likes = result.likes;
+                    }
+                    filterBuilds();
+                } else {
+                    const error = await response.json();
+                    alert('Ошибка: ' + (error.error || 'Не удалось поставить лайк'));
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка сервера');
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function getCategoryIcon(category) {
+            const icons = {
+                'gaming': '🎮',
+                'work': '💼',
+                'editing': '🎬',
+                'school': '🏫'
+            };
+            return icons[category] || '💻';
+        }
+        
+        function getCategoryName(category) {
+            const names = {
+                'gaming': 'Игровая',
+                'work': 'Рабочая',
+                'editing': 'Для монтажа',
+                'school': 'Для школы'
+            };
+            return names[category] || 'Сборка';
+        }
+        
+        function filterBuilds() {
+            const category = document.getElementById('categoryFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+            
+            let filtered = [...allBuilds];
+            
+            if (category !== 'all') {
+                filtered = filtered.filter(b => b.category === category);
+            }
+            
+            if (sortBy === 'date') {
+                filtered.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
+            } else if (sortBy === 'price_asc') {
+                filtered.sort((a, b) => (a.total_price || 0) - (b.total_price || 0));
+            } else if (sortBy === 'price_desc') {
+                filtered.sort((a, b) => (b.total_price || 0) - (a.total_price || 0));
+            } else if (sortBy === 'likes') {
+                filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+            }
+            
+            displayBuilds(filtered);
+        }
+        
+        async function refreshBuilds() {
+            document.getElementById('buildsList').innerHTML = '<div class="loading">⏳ Обновление...</div>';
+            await loadAllBuilds();
+        }
+        
+        function useThisBuild(buildId) {
+            const build = allBuilds.find(b => b.id === buildId);
+            if (build && build.components) {
+                localStorage.setItem('tempBuild', JSON.stringify(build.components));
+                alert('Сборка сохранена! Перейдите в "Сборка ПК" чтобы продолжить');
+                window.location.href = 'builder.html';
+            }
+        }
+        
+        async function deleteBuild(buildId, isAdminUser) {
+            let message = 'Удалить эту сборку?';
+            if (isAdminUser) {
+                const build = allBuilds.find(b => b.id === buildId);
+                message = `Удалить сборку "${build?.name}" пользователя ${build?.username}?`;
+            }
+            
+            customConfirm(message, async () => {
+                try {
+                    const response = await fetch(`/api/builds/${buildId}`, {
+                        method: 'DELETE',
+                        headers: { 'user-id': currentUser.id }
+                    });
+                    
+                    if (response.ok) {
+                        alert('✅ Сборка успешно удалена');
+                        await refreshBuilds();
+                    } else {
+                        const error = await response.json();
+                        alert('❌ Ошибка при удалении: ' + (error.error || 'Неизвестная ошибка'));
+                    }
+                } catch (error) {
+                    console.error('Ошибка удаления:', error);
+                    alert('❌ Ошибка сервера при удалении');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Marketplace - Админ панель</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <<header>
+    <div class="header-content">
+        <div class="header-left">
+            <div class="burger-menu" id="burgerMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <h1>PC Marketplace</h1>
+        </div>
+        <div class="header-right"></div>
+    </div>
+    
+    <nav class="desktop-nav">
+        <a href="index.html" class="nav-btn">🛒 Магазин</a>
+        <a href="builder.html" class="nav-btn">🔧 Сборка ПК</a>
+        <a href="community.html" class="nav-btn">👥 Сборки пользователей</a>
+        <a href="cart.html" class="nav-btn">🛒 Корзина</a>
+        <a href="admin.html" class="nav-btn active" id="adminNavBtn" style="display: none;">👑 Админ панель</a>
+        <span class="user-nav">
+            <a href="profile.html" class="nav-btn" id="profileBtn" style="display: none;">👤 Профиль</a>
+            <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;">🚪 Выйти</button>
+            <a href="auth.html" class="nav-btn" id="authBtn">🔐 Вход</a>
+        </span>
+    </nav>
+</header>
+
+<div class="mobile-nav" id="mobileNav">
+    <a href="index.html">🛒 Магазин</a>
+    <a href="builder.html">🔧 Сборка ПК</a>
+    <a href="community.html">👥 Сборки пользователей</a>
+    <a href="cart.html">🛒 Корзина</a>
+    <a href="admin.html" class="active" id="mobileAdminNav" style="display: none;">👑 Админ панель</a>
+    <a href="profile.html" id="mobileProfileBtn" style="display: none;">👤 Профиль</a>
+    <button id="mobileLogoutBtn" style="display: none;" onclick="logoutFromMobile()">🚪 Выйти</button>
+    <a href="auth.html" id="mobileAuthBtn">🔐 Вход</a>
+</div>
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <main>
+        <div id="adminContent">
+            <div class="loading">⏳ Проверка прав доступа...</div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadComponents();
+            await updateAuthUI();
+            
+            if (!currentUser) {
+                document.getElementById('adminContent').innerHTML = `
+                    <div class="access-denied">
+                        <h2>⛔ Доступ запрещён</h2>
+                        <p>Только для администраторов</p>
+                        <a href="auth.html" class="nav-btn">🔐 Войти как администратор</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const isAdmin = await isAdminUser(currentUser.id);
+            
+            if (!isAdmin) {
+                document.getElementById('adminContent').innerHTML = `
+                    <div class="access-denied">
+                        <h2>⛔ Доступ запрещён</h2>
+                        <p>У вас нет прав администратора</p>
+                        <a href="index.html" class="nav-btn">🛒 Вернуться в магазин</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            await loadAdminPanel();
+        });
+        
+        async function loadAdminPanel() {
+            const stats = {
+                total: components.length,
+                types: [...new Set(components.map(c => c.type))].length,
+                avgPrice: (components.reduce((sum, c) => sum + c.price, 0) / components.length).toFixed(2),
+                totalStock: components.reduce((sum, c) => sum + c.stock, 0)
+            };
+            
+            const html = `
+                <div class="admin-panel">
+                    <h2>👑 Админ панель управления</h2>
+                    
+                    <div class="admin-stats">
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.total}</div>
+                            <div>Всего товаров</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.types}</div>
+                            <div>Типов техники</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.avgPrice.toLocaleString('ru-RU')} ₽</div>
+                            <div>Средняя цена</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalStock}</div>
+                            <div>Всего на складе</div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="showAddComponentForm()" class="add-btn">➕ Добавить технику</button>
+                    
+                    <div class="admin-table">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Изображение</th><th>Название</th><th>Тип</th><th>Цена</th><th>Наличие</th><th>Действия</th></tr>
+                            </thead>
+                            <tbody>
+                                ${components.map(comp => `
+                                    <tr>
+                                        <td>${comp.id}</td>
+                                        <td><img src="${comp.image}" class="admin-thumb" onerror="this.src='https://placehold.co/50x50/667eea/white?text=PC'"></td>
+                                        <td>${comp.name}</td>
+                                        <td>${comp.type}</td>
+                                        <td>${comp.price.toLocaleString('ru-RU')} ₽</td>
+                                        <td>${comp.stock}</td>
+                                        <td>
+                                            <button onclick="editComponent(${comp.id})" class="edit-btn">✏️</button>
+                                            <button onclick="deleteComponentConfirm(${comp.id})" class="delete-btn">🗑️</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('adminContent').innerHTML = html;
+        }
+        
+        function showAddComponentForm() {
+            const html = `
+                <div class="modal-overlay" id="addModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>➕ Добавить новую технику</h3>
+                            <button class="modal-close" onclick="closeModal()">✕</button>
+                        </div>
+                        <form id="addComponentForm" onsubmit="addNewComponent(event)" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label>Название *</label>
+                                <input type="text" id="compName" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Тип *</label>
+                                <select id="compType" required>
+                                    <option value="">Выберите тип</option>
+                                    <option value="CPU">CPU (Процессор)</option>
+                                    <option value="GPU">GPU (Видеокарта)</option>
+                                    <option value="RAM">RAM (Оперативная память)</option>
+                                    <option value="Motherboard">Motherboard (Материнская плата)</option>
+                                    <option value="SSD">SSD (Накопитель)</option>
+                                    <option value="PSU">PSU (Блок питания)</option>
+                                    <option value="Cooler">Cooler (Охлаждение)</option>
+                                    <option value="Case">Case (Корпус)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Цена (в рублях) *</label>
+                                <input type="number" id="compPrice" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Количество на складе *</label>
+                                <input type="number" id="compStock" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Изображение товара</label>
+                                <input type="file" id="compImage" accept="image/*" onchange="previewImage(this)">
+                                <div id="imagePreview" class="image-preview"></div>
+                                <small class="form-hint">Поддерживаются PNG, JPG, JPEG. Максимум 5MB</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Характеристики</label>
+                                <input type="text" id="compSpecs" placeholder="Например: 24 ядра, 5.8GHz">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Категория</label>
+                                <select id="compCategory">
+                                    <option value="gaming">🎮 Игровая</option>
+                                    <option value="work">💼 Рабочая</option>
+                                    <option value="editing">🎬 Для монтажа</option>
+                                    <option value="school">🏫 Для школы</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-buttons">
+                                <button type="submit" class="save-btn">💾 Сохранить</button>
+                                <button type="button" class="cancel-btn" onclick="closeModal()">❌ Отмена</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+        
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" class="preview-img" style="width: 150px; height: 150px; object-fit: contain; background: #f8f9fa; padding: 0.5rem; border-radius: 8px;">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.innerHTML = '';
+            }
+        }
+        
+        async function addNewComponent(event) {
+            event.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('name', document.getElementById('compName').value);
+            formData.append('type', document.getElementById('compType').value);
+            formData.append('price', document.getElementById('compPrice').value);
+            formData.append('stock', document.getElementById('compStock').value);
+            formData.append('specs', document.getElementById('compSpecs').value);
+            formData.append('category', document.getElementById('compCategory').value);
+            
+            const imageFile = document.getElementById('compImage').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            
+            try {
+                const response = await fetch('/api/admin/components', {
+                    method: 'POST',
+                    headers: { 'user-id': currentUser.id },
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('✅ Техника успешно добавлена!');
+                    closeModal();
+                    await loadComponents();
+                    await loadAdminPanel();
+                } else {
+                    const error = await response.json();
+                    alert('❌ Ошибка: ' + (error.error || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                alert('❌ Ошибка: ' + error.message);
+            }
+        }
+        
+        function editComponent(id) {
+            const component = components.find(c => c.id === id);
+            
+            const html = `
+                <div class="modal-overlay" id="editModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>✏️ Редактировать: ${component.name}</h3>
+                            <button class="modal-close" onclick="closeModal()">✕</button>
+                        </div>
+                        <form id="editComponentForm" onsubmit="updateComponent(event, ${id})" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label>Текущее изображение</label>
+                                <img src="${component.image}" class="current-image">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Новое изображение</label>
+                                <input type="file" id="compImage" accept="image/*" onchange="previewEditImage(this)">
+                                <div id="imagePreview" class="image-preview"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Цена (в рублях) *</label>
+                                <input type="number" id="compPrice" value="${component.price}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Количество на складе *</label>
+                                <input type="number" id="compStock" value="${component.stock}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Характеристики</label>
+                                <input type="text" id="compSpecs" value="${component.specs || ''}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Категория</label>
+                                <select id="compCategory">
+                                    <option value="gaming" ${component.category === 'gaming' ? 'selected' : ''}>🎮 Игровая</option>
+                                    <option value="work" ${component.category === 'work' ? 'selected' : ''}>💼 Рабочая</option>
+                                    <option value="editing" ${component.category === 'editing' ? 'selected' : ''}>🎬 Для монтажа</option>
+                                    <option value="school" ${component.category === 'school' ? 'selected' : ''}>🏫 Для школы</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-buttons">
+                                <button type="submit" class="save-btn">💾 Сохранить изменения</button>
+                                <button type="button" class="cancel-btn" onclick="closeModal()">❌ Отмена</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+        
+        function previewEditImage(input) {
+            const preview = document.getElementById('imagePreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" class="preview-img" style="width: 150px; height: 150px; object-fit: contain; background: #f8f9fa; padding: 0.5rem; border-radius: 8px;">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        async function updateComponent(event, id) {
+            event.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('price', document.getElementById('compPrice').value);
+            formData.append('stock', document.getElementById('compStock').value);
+            formData.append('specs', document.getElementById('compSpecs').value);
+            formData.append('category', document.getElementById('compCategory').value);
+            
+            const imageFile = document.getElementById('compImage').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/components/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'user-id': currentUser.id
+                    },
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    alert('✅ Техника обновлена!');
+                    closeModal();
+                    await loadComponents();
+                    await loadAdminPanel();
+                } else {
+                    const error = await response.json();
+                    alert('❌ Ошибка: ' + (error.error || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                alert('❌ Ошибка: ' + error.message);
+            }
+        }
+        
+        function deleteComponentConfirm(id) {
+            const component = components.find(c => c.id === id);
+            customConfirm(`Удалить "${component.name}"?`, async () => {
+                try {
+                    const response = await fetch(`/api/admin/components/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'user-id': currentUser.id }
+                    });
+                    
+                    if (response.ok) {
+                        alert('✅ Техника удалена');
+                        await loadComponents();
+                        await loadAdminPanel();
+                    } else {
+                        alert('❌ Ошибка при удалении');
+                    }
+                } catch (error) {
+                    alert('❌ Ошибка: ' + error.message);
+                }
+            });
+        }
+        
+        function closeModal() {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+        }
+    </script>
+</body>
+</html>

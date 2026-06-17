@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Marketplace - Вход и регистрация</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <div class="header-left">
+            <div class="burger-menu" id="burgerMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <h1>PC Marketplace</h1>
+        </div>
+        <div class="header-right"></div>
+    </div>
+    
+    <nav class="desktop-nav">
+        <a href="index.html" class="nav-btn">🛒 Магазин</a>
+        <a href="builder.html" class="nav-btn">🔧 Сборка ПК</a>
+        <a href="community.html" class="nav-btn">👥 Сборки пользователей</a>
+        <a href="cart.html" class="nav-btn">🛒 Корзина</a>
+        <a href="admin.html" class="nav-btn" id="adminNavBtn" style="display: none;">👑 Админ панель</a>
+        <span class="user-nav">
+            <a href="profile.html" class="nav-btn" id="profileBtn" style="display: none;">👤 Профиль</a>
+            <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;">🚪 Выйти</button>
+            <a href="auth.html" class="nav-btn active">🔐 Вход</a>
+        </span>
+    </nav>
+</header>
+
+<div class="mobile-nav" id="mobileNav">
+    <a href="index.html">🛒 Магазин</a>
+    <a href="builder.html">🔧 Сборка ПК</a>
+    <a href="community.html">👥 Сборки пользователей</a>
+    <a href="cart.html">🛒 Корзина</a>
+    <a href="admin.html" id="mobileAdminNav" style="display: none;">👑 Админ панель</a>
+    <a href="profile.html" id="mobileProfileBtn" style="display: none;">👤 Профиль</a>
+    <button id="mobileLogoutBtn" style="display: none;" onclick="logoutFromMobile()">🚪 Выйти</button>
+    <a href="auth.html" class="active">🔐 Вход</a>
+</div>
+<div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <main>
+        <div class="auth-container">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="showAuthForm('login')">Вход</button>
+                <button class="auth-tab" onclick="showAuthForm('register')">Регистрация</button>
+            </div>
+            
+            <div id="loginForm" class="auth-form">
+                <h2>🔐 Вход в аккаунт</h2>
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Пароль" required>
+                <button onclick="handleLogin()">Войти</button>
+                <div id="loginMessage" class="message"></div>
+            </div>
+            
+            <div id="registerForm" class="auth-form" style="display:none">
+                <h2>📝 Регистрация</h2>
+                <input type="text" id="regUsername" placeholder="Имя пользователя" required>
+                <input type="email" id="regEmail" placeholder="Email" required>
+                <input type="password" id="regPassword" placeholder="Пароль" required>
+                <input type="password" id="regConfirmPassword" placeholder="Подтвердите пароль" required>
+                <button onclick="handleRegister()">Зарегистрироваться</button>
+                <div id="registerMessage" class="message"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAuthUI();
+            initMobileMenu();
+        });
+        function initMobileMenu() {
+            const burger = document.getElementById('burgerMenu');
+            const mobileNav = document.getElementById('mobileNav');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            if (!burger) return;
+            
+            function toggleMenu() {
+                burger.classList.toggle('active');
+                mobileNav.classList.toggle('active');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+            }
+            
+            burger.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+            
+            mobileNav.querySelectorAll('a, button').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (mobileNav.classList.contains('active')) toggleMenu();
+                });
+            });
+        }
+        
+        function logoutFromMobile() {
+            if (confirm('Выйти из аккаунта?')) {
+                localStorage.removeItem('currentUser');
+                window.location.reload();
+            }
+        }
+        
+        async function updateAuthUI() {
+            const userStr = localStorage.getItem('currentUser');
+            const authBtn = document.getElementById('authBtn');
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const adminNavBtn = document.getElementById('adminNavBtn');
+            
+            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+            const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+            const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+            const mobileAdminNav = document.getElementById('mobileAdminNav');
+            
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                if (authBtn) authBtn.style.display = 'none';
+                if (profileBtn) profileBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.textContent = `👤 ${currentUser.username}`;
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'none';
+                if (mobileProfileBtn) {
+                    mobileProfileBtn.style.display = 'block';
+                    mobileProfileBtn.textContent = `👤 ${currentUser.username}`;
+                }
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
+                
+                const isAdmin = await isAdminUser(currentUser.id);
+                if (adminNavBtn) adminNavBtn.style.display = isAdmin ? 'inline-block' : 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = isAdmin ? 'block' : 'none';
+            } else {
+                if (authBtn) authBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (adminNavBtn) adminNavBtn.style.display = 'none';
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'block';
+                if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = 'none';
+            }
+        }
+        
+        function showAuthForm(form) {
+            document.querySelectorAll('.auth-form').forEach(f => f.style.display = 'none');
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            
+            if (form === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+                document.querySelector('.auth-tab').classList.add('active');
+            } else {
+                document.getElementById('registerForm').style.display = 'block';
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            }
+        }
+        
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const messageDiv = document.getElementById('loginMessage');
+            
+            if (!email || !password) {
+                messageDiv.innerHTML = '<span style="color:red">❌ Заполните все поля</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span style="color:blue">⏳ Проверка...</span>';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('currentUser', JSON.stringify(data.user));
+                    messageDiv.innerHTML = '<span style="color:green">✅ Вход выполнен! Перенаправление...</span>';
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    messageDiv.innerHTML = `<span style="color:red">❌ ${data.error || 'Неверный email или пароль'}</span>`;
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                messageDiv.innerHTML = '<span style="color:red">❌ Ошибка сервера. Попробуйте позже.</span>';
+            }
+        }
+        
+        async function handleRegister() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+            const messageDiv = document.getElementById('registerMessage');
+            
+            if (!username || !email || !password) {
+                messageDiv.innerHTML = '<span style="color:red">❌ Заполните все поля</span>';
+                return;
+            }
+            
+            if (password !== confirm) {
+                messageDiv.innerHTML = '<span style="color:red">❌ Пароли не совпадают</span>';
+                return;
+            }
+            
+            if (password.length < 4) {
+                messageDiv.innerHTML = '<span style="color:red">❌ Пароль должен быть не менее 4 символов</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span style="color:blue">⏳ Регистрация...</span>';
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageDiv.innerHTML = '<span style="color:green">✅ Регистрация успешна! Теперь войдите</span>';
+                    setTimeout(() => {
+                        showAuthForm('login');
+                        document.getElementById('loginEmail').value = email;
+                        document.getElementById('loginPassword').value = '';
+                        document.getElementById('loginMessage').innerHTML = '<span style="color:green">✅ Аккаунт создан! Войдите</span>';
+                    }, 2000);
+                } else {
+                    messageDiv.innerHTML = `<span style="color:red">❌ ${data.error || 'Ошибка регистрации'}</span>`;
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                messageDiv.innerHTML = '<span style="color:red">❌ Ошибка сервера. Попробуйте позже.</span>';
+            }
+        }
+    </script>
+</body>
+</html>

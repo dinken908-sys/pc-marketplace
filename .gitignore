@@ -1,0 +1,13 @@
+node_modules/
+.env
+*.log
+.DS_Store
+data/
+*.exe
+*.bat
+mingw64/
+usr/
+etc/
+post-install.bat
+.vscode/
+components/

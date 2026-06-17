@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PC Marketplace - Магазин</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-left">
+                <div class="burger-menu" id="burgerMenu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <h1>PC Marketplace</h1>
+            </div>
+            <div class="header-right">
+            </div>
+        </div>
+        
+        <nav class="desktop-nav">
+            <a href="index.html" class="nav-btn active">🛒 Магазин</a>
+            <a href="builder.html" class="nav-btn">🔧 Сборка ПК</a>
+            <a href="community.html" class="nav-btn">👥 Сборки пользователей</a>
+            <a href="cart.html" class="nav-btn">🛒 Корзина</a>
+            <a href="admin.html" class="nav-btn" id="adminNavBtn" style="display: none;">👑 Админ панель</a>
+            <span class="user-nav">
+                <a href="profile.html" class="nav-btn" id="profileBtn" style="display: none;">👤 Профиль</a>
+                <button class="nav-btn logout-btn" id="logoutBtn" style="display: none;">🚪 Выйти</button>
+                <a href="auth.html" class="nav-btn" id="authBtn">🔐 Вход</a>
+            </span>
+        </nav>
+    </header>
+    
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html" class="active">🛒 Магазин</a>
+        <a href="builder.html">🔧 Сборка ПК</a>
+        <a href="community.html">👥 Сборки пользователей</a>
+        <a href="cart.html">🛒 Корзина</a>
+        <a href="admin.html" id="mobileAdminNav" style="display: none;">👑 Админ панель</a>
+        <a href="profile.html" id="mobileProfileBtn" style="display: none;">👤 Профиль</a>
+        <button id="mobileLogoutBtn" style="display: none;" onclick="logoutFromMobile()">🚪 Выйти</button>
+        <a href="auth.html" id="mobileAuthBtn">🔐 Вход</a>
+    </div>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    
+    <main>
+        <div class="market-header">
+            <h2>🛒 Магазин комплектующих</h2>
+            <div class="filters">
+                <select id="categoryFilter" onchange="filterComponents()">
+                    <option value="all">Все категории</option>
+                    <option value="school">🏫 Школа/Офис</option>
+                    <option value="work">💼 Работа</option>
+                    <option value="gaming">🎮 Игры</option>
+                    <option value="editing">🎬 Монтаж</option>
+                </select>
+        <select id="typeFilter" onchange="filterComponents()">
+            <option value="all">Все типы</option>
+            <option value="CPU">Процессор</option>
+            <option value="GPU">Видеокарта</option>
+            <option value="RAM">Оперативная память</option>
+            <option value="Motherboard">Материнская плата</option>
+            <option value="SSD">Накопитель SSD</option>
+            <option value="PSU">Блок питания</option>
+            <option value="Cooler">Охлаждение</option>
+            <option value="Case">Корпус</option>
+        </select>
+                <input type="text" id="searchInput" placeholder="🔍 Поиск..." onkeyup="filterComponents()">
+            </div>
+        </div>
+        <div id="componentsGrid" class="components-grid">
+            <div class="loading">⏳ Загрузка комплектующих...</div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>PC Marketplace</h3>
+                <p>Интернет-площадка для покупок товаров и виртуальной сборки ПК с проверкой совместимости компонентов. Умный подбор под ваш бюджет и задачи.</p>
+            </div>         
+            <div class="footer-section">
+                <h3>Навигация</h3>
+                <ul>
+                    <li><a href="index.html">🛒 Магазин</a></li>
+                    <li><a href="builder.html">🔧 Сборка ПК</a></li>
+                    <li><a href="community.html">👥 Сборки пользователей</a></li>
+                    <li><a href="cart.html">🛒 Корзина</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 PC Marketplace. Все права защищены. Данный сайт носит информационный характер.</p>
+        </div>
+    </footer>    
+    <script src="script.js"></script>
+    <script>
+        function initMobileMenu() {
+            const burger = document.getElementById('burgerMenu');
+            const mobileNav = document.getElementById('mobileNav');
+            const overlay = document.getElementById('mobileOverlay');
+            
+            if (!burger) return;
+            
+            function toggleMenu() {
+                burger.classList.toggle('active');
+                mobileNav.classList.toggle('active');
+                overlay.classList.toggle('active');
+                document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+            }
+            
+            burger.addEventListener('click', toggleMenu);
+            overlay.addEventListener('click', toggleMenu);
+            
+            mobileNav.querySelectorAll('a, button').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (mobileNav.classList.contains('active')) toggleMenu();
+                });
+            });
+        }
+        
+        function logoutFromMobile() {
+            if (confirm('Выйти из аккаунта?')) {
+                localStorage.removeItem('currentUser');
+                window.location.reload();
+            }
+        }
+        
+        async function updateAuthUI() {
+            const userStr = localStorage.getItem('currentUser');
+            const authBtn = document.getElementById('authBtn');
+            const profileBtn = document.getElementById('profileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const adminNavBtn = document.getElementById('adminNavBtn');
+            
+            const mobileAuthBtn = document.getElementById('mobileAuthBtn');
+            const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+            const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+            const mobileAdminNav = document.getElementById('mobileAdminNav');
+            
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                if (authBtn) authBtn.style.display = 'none';
+                if (profileBtn) profileBtn.style.display = 'inline-block';
+                if (logoutBtn) logoutBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.textContent = `👤 ${currentUser.username}`;
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'none';
+                if (mobileProfileBtn) {
+                    mobileProfileBtn.style.display = 'block';
+                    mobileProfileBtn.textContent = `👤 ${currentUser.username}`;
+                }
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
+                
+                const isAdmin = await isAdminUser(currentUser.id);
+                if (adminNavBtn) adminNavBtn.style.display = isAdmin ? 'inline-block' : 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = isAdmin ? 'block' : 'none';
+            } else {
+                if (authBtn) authBtn.style.display = 'inline-block';
+                if (profileBtn) profileBtn.style.display = 'none';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (adminNavBtn) adminNavBtn.style.display = 'none';
+                
+                if (mobileAuthBtn) mobileAuthBtn.style.display = 'block';
+                if (mobileProfileBtn) mobileProfileBtn.style.display = 'none';
+                if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
+                if (mobileAdminNav) mobileAdminNav.style.display = 'none';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadComponents();
+            await updateAuthUI();
+            await updateHeaderAvatar();
+            displayComponents(components);
+            initMobileMenu();
+        });
+        
+        function displayComponents(componentsList) {
+            const grid = document.getElementById('componentsGrid');
+            if (!componentsList || componentsList.length === 0) {
+                grid.innerHTML = '<div class="loading">😕 Комплектующие не найдены</div>';
+                return;
+            }
+        grid.innerHTML = componentsList.map(comp => {
+            let typeName = '';
+            if (comp.type === 'CPU') typeName = 'Процессор';
+            else if (comp.type === 'GPU') typeName = 'Видеокарта';
+            else if (comp.type === 'RAM') typeName = 'Оперативная память';
+            else if (comp.type === 'Motherboard') typeName = 'Материнская плата';
+            else if (comp.type === 'SSD') typeName = 'Накопитель SSD';
+            else if (comp.type === 'PSU') typeName = 'Блок питания';
+            else if (comp.type === 'Cooler') typeName = 'Охлаждение';
+            else if (comp.type === 'Case') typeName = 'Корпус';
+            else typeName = comp.type;
+        let shortName = comp.name;
+        if (window.innerWidth <= 768) {
+            shortName = comp.name.length > 30 ? comp.name.substring(0, 27) + '...' : comp.name;
+        }
+        let shortSpecs = comp.specs || 'Характеристики не указаны';
+        if (window.innerWidth <= 768) {
+            shortSpecs = shortSpecs.length > 40 ? shortSpecs.substring(0, 37) + '...' : shortSpecs;
+        }
+            return `
+                <div class="component-card">
+                    <img src="${comp.image || 'https://placehold.co/400x400/667eea/white?text=PC'}" alt="${comp.name}">
+                    <h3>${comp.name}</h3>
+                    <span class="badge">${typeName}</span>
+                    <p class="specs">${comp.specs ? comp.specs.substring(0, 60) + (comp.specs.length > 60 ? '...' : '') : 'Характеристики не указаны'}</p>
+                    <div class="price">${comp.price.toLocaleString('ru-RU')} </div>
+                    <p class="stock">📦 В наличии: ${comp.stock || 0} шт.</p>
+                    <div class="card-buttons">
+                        <button onclick="showComponentDetails(${comp.id})" class="details-btn">📋 Подробнее</button>
+                        <button onclick="addToBuild(${comp.id})" class="add-to-build-btn">➕ Добавить</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        }
+        
+        function filterComponents() {
+            const category = document.getElementById('categoryFilter').value;
+            const type = document.getElementById('typeFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = components;
+            if (category !== 'all') filtered = filtered.filter(c => c.category === category);
+            if (type !== 'all') filtered = filtered.filter(c => c.type === type);
+            if (search) filtered = filtered.filter(c => c.name.toLowerCase().includes(search) || (c.specs && c.specs.toLowerCase().includes(search)));
+            displayComponents(filtered);
+        }
+        
+    </script>
+</body>
+</html>
