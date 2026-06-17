@@ -8,12 +8,12 @@ build:
   additionalCommands: 
     - cd backend && npm install
   artifacts:
-    "*": /
+    backend: /
 run:
-  scriptName: null
+  scriptName: backend/server.js
   scriptArguments: null
   nodeArguments: null
-  command: cd backend && npm start
+  command: npm start
   persistenceMount: /data
   containerPort: "80"
   servicePort: "80"
