@@ -5,15 +5,15 @@ meta:
     version: "20"
 build:
   skip: false
-  additionalCommands: 
+  additionalCommands:
     - cd backend && npm install
   artifacts:
-    backend: /
+    "*": /
 run:
   scriptName: backend/server.js
   scriptArguments: null
   nodeArguments: null
-  command: npm start
+  command: node backend/server.js
   persistenceMount: /data
   containerPort: "80"
   servicePort: "80"
